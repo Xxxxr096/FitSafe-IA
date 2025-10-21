@@ -1,481 +1,374 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='image/logo2.png') }}">
-    <title>FitSafe AI En cours d'entraînement</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Athena – En cours d’entraînement | FitSafe AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Poppins:wght@300;500&display=swap" rel="stylesheet">
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: #0a0a0a;
-            color: #e0e0e0;
-            min-height: 100vh; 
-            overflow-x: hidden; 
-            display: flex;
-            flex-direction: column;
-        }
-        
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
 
-        /* Canvas pour le réseau neuronal animé */
-        #neuralNetwork {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
+    body {
+      width:100%;
+      height:100vh;
+      overflow:hidden;
+      background:#000;
+      font-family:'Poppins',sans-serif;
+      color:#fff;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      flex-direction:column;
+    }
 
-        /* Overlay gradient pour profondeur */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(ellipse at center, transparent 0%, rgba(10, 10, 10, 0.8) 70%);
-            z-index: 2;
-            pointer-events: none;
-        }
+    #container {
+      position:fixed;
+      top:0; left:0;
+      width:100%; height:100%;
+      z-index:1;
+    }
 
-        /* Container principal */
-        .container {
-            position: relative;
-            z-index: 3;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-            text-align: center;
-        }
+    .overlay {
+      position:fixed;
+      top:0; left:0;
+      width:100%; height:100%;
+      background:radial-gradient(circle at center, rgba(0,0,0,0.15), rgba(0,0,0,0.9) 80%);
+      z-index:2;
+    }
 
-        /* Logo avec effet glow */
-        .logo {
-            font-family: 'Orbitron', sans-serif;
-            font-size: clamp(2.5rem, 8vw, 5rem);
-            font-weight: 900;
-            background: linear-gradient(135deg, #ffffff 0%, #ef4444 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 1rem;
-            animation: pulse-glow 3s ease-in-out infinite;
-            text-shadow: 0 0 40px rgba(239, 68, 68, 0.5);
-            letter-spacing: 0.1em;
-        }
+    .content {
+      position:relative;
+      z-index:3;
+      text-align:center;
+      padding:2rem;
+      max-width:700px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+    }
 
-        @keyframes pulse-glow {
-            0%, 100% {
-                filter: drop-shadow(0 0 20px rgba(239, 68, 68, 0.6));
-            }
-            50% {
-                filter: drop-shadow(0 0 40px rgba(239, 68, 68, 0.9));
-            }
-        }
+    h1 {
+      font-family:'Orbitron',sans-serif;
+      font-size:clamp(2rem,6vw,4rem);
+      background:linear-gradient(90deg,#ef4444,#ff006e,#00ffff,#ef4444);
+      background-size:300%;
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      animation:glow-shift 4s linear infinite;
+      text-shadow:0 0 20px rgba(255,255,255,0.3);
+    }
 
-        /* Sphère centrale pulsante */
-        .ai-core {
-            width: 200px;
-            height: 200px;
-            margin: 3rem auto;
-            position: relative;
-        }
+    @keyframes glow-shift {
+      0% { background-position: 0%; }
+      100% { background-position: 300%; }
+    }
 
-        .sphere {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, rgba(239, 68, 68, 0.8), rgba(239, 68, 68, 0.1));
-            box-shadow: 
-                0 0 60px rgba(239, 68, 68, 0.6),
-                inset 0 0 60px rgba(239, 68, 68, 0.3);
-            animation: sphere-pulse 2s ease-in-out infinite;
-            position: relative;
-        }
+    p {
+      color:#b0b0b0;
+      font-size:1.2rem;
+      margin-top:1rem;
+      line-height:1.6;
+      max-width:550px;
+    }
 
-        .sphere::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 120%;
-            height: 120%;
-            border: 2px solid rgba(239, 68, 68, 0.3);
-            border-radius: 50%;
-            animation: ring-expand 3s ease-out infinite;
-        }
+    .progress {
+      margin-top:2.5rem;
+      width:260px;
+      height:5px;
+      background:rgba(255,255,255,0.15);
+      border-radius:3px;
+      overflow:hidden;
+      box-shadow:0 0 15px rgba(255,255,255,0.1);
+    }
 
-        @keyframes sphere-pulse {
-            0%, 100% {
-                transform: scale(1);
-                box-shadow: 
-                    0 0 60px rgba(239, 68, 68, 0.6),
-                    inset 0 0 60px rgba(239, 68, 68, 0.3);
-            }
-            50% {
-                transform: scale(1.05);
-                box-shadow: 
-                    0 0 80px rgba(239, 68, 68, 0.9),
-                    inset 0 0 80px rgba(239, 68, 68, 0.5);
-            }
-        }
+    .fill {
+      width:0%;
+      height:100%;
+      background:linear-gradient(90deg,#ef4444,#ff006e,#00ffff,#ef4444);
+      background-size:300%;
+      animation:fillmove 10s linear infinite, glow-shift 6s linear infinite;
+      box-shadow:0 0 20px rgba(255,255,255,0.3);
+    }
 
-        @keyframes ring-expand {
-            0% {
-                transform: translate(-50%, -50%) scale(0.8);
-                opacity: 1;
-            }
-            100% {
-                transform: translate(-50%, -50%) scale(1.5);
-                opacity: 0;
-            }
-        }
+    @keyframes fillmove {
+      0%{width:0%;}
+      100%{width:100%;}
+    }
 
-        /* Titre principal */
-        .main-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: clamp(1.5rem, 4vw, 2.5rem);
-            font-weight: 700;
-            margin-bottom: 1rem;
-            color: #ffffff;
-        }
+    footer {
+      position:fixed;
+      bottom:0;
+      width:100%;
+      text-align:center;
+      padding:1.2rem 0;
+      font-size:0.9rem;
+      color:#777;
+      border-top:1px solid rgba(255,255,255,0.08);
+      background:rgba(0,0,0,0.6);
+      backdrop-filter:blur(6px);
+      z-index:5;
+    }
 
-        /* Sous-titre */
-        .subtitle {
-            font-size: clamp(1rem, 2vw, 1.2rem);
-            color: #a0a0a0;
-            max-width: 600px;
-            margin: 0 auto 3rem;
-            line-height: 1.6;
-        }
+    footer a {
+      color:#00ffff;
+      text-decoration:none;
+      margin:0 0.5rem;
+      transition:all 0.3s ease;
+    }
 
-        /* Terminal de chargement */
-        .terminal {
-            background: rgba(20, 20, 20, 0.8);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            border-radius: 8px;
-            padding: 1.5rem;
-            max-width: 500px;
-            margin: 0 auto;
-            text-align: left;
-            font-family: 'Courier New', monospace;
-            box-shadow: 0 0 30px rgba(239, 68, 68, 0.2);
-        }
-
-        .terminal-line {
-            color: #00ff00;
-            margin: 0.5rem 0;
-            font-size: 0.9rem;
-            opacity: 0;
-            animation: terminal-appear 0.5s ease-out forwards;
-        }
-
-        .terminal-line:nth-child(1) { animation-delay: 0.5s; }
-        .terminal-line:nth-child(2) { animation-delay: 1.5s; }
-        .terminal-line:nth-child(3) { animation-delay: 2.5s; }
-        .terminal-line:nth-child(4) { animation-delay: 3.5s; color: #ef4444; }
-
-        @keyframes terminal-appear {
-            from {
-                opacity: 0;
-                transform: translateX(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .cursor {
-            display: inline-block;
-            width: 8px;
-            height: 16px;
-            background: #00ff00;
-            margin-left: 5px;
-            animation: cursor-blink 1s step-end infinite;
-        }
-
-        @keyframes cursor-blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0; }
-        }
-
-        /* Barre de progression */
-        .progress-container {
-            margin-top: 2rem;
-            width: 100%;
-            max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 4px;
-            background: rgba(239, 68, 68, 0.2);
-            border-radius: 2px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #ef4444, #ff6b6b);
-            border-radius: 2px;
-            width: 0%;
-            animation: progress-load 4s ease-in-out infinite;
-            box-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
-        }
-
-        @keyframes progress-load {
-            0% { width: 0%; }
-            50% { width: 70%; }
-            100% { width: 95%; }
-        }
-
-        .progress-text {
-            text-align: center;
-            margin-top: 0.5rem;
-            font-size: 0.8rem;
-            color: #ef4444;
-            font-family: 'Orbitron', sans-serif;
-        }
-
-        /* Footer */
-        footer {
-            position: relative;
-            z-index: 3;
-            padding: 2rem;
-            text-align: center;
-            font-size: 0.85rem;
-            color: #666;
-            border-top: 1px solid rgba(239, 68, 68, 0.1);
-        }
-
-        footer a {
-            color: #ef4444;
-            text-decoration: none;
-            margin: 0 0.5rem;
-            transition: color 0.3s ease;
-        }
-
-        footer a:hover {
-            color: #ff6b6b;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .ai-core {
-                width: 150px;
-                height: 150px;
-                margin: 2rem auto;
-            }
-
-            .terminal {
-                padding: 1rem;
-                font-size: 0.8rem;
-            }
-
-            .container {
-                padding: 1rem;
-            }
-        }
-        .nav-link-glow {
-            font-weight: 700;
-            background: linear-gradient(90deg, #ef4444, #ff006e, #00ffff, #ef4444);
-            background-size: 300%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: glow-shift 3s linear infinite;
-            text-shadow: 0 0 10px rgba(255,255,255,0.3);
-            transition: transform 0.3s ease;
-          }
-        
-          .nav-link-glow:hover {
-            transform: scale(1.15);
-            text-shadow: 0 0 20px rgba(255,255,255,0.6);
-          }
-        
-          @keyframes glow-shift {
-            0% { background-position: 0%; }
-            100% { background-position: 300%; }
-          }
-    </style>
+    footer a:hover {
+      color:#ff006e;
+      text-shadow:0 0 8px rgba(255,0,100,0.8);
+    }
+  </style>
 </head>
+
 <body>
-    <!-- Canvas pour réseau neuronal -->
-    <canvas id="neuralNetwork"></canvas>
-    
-    <!-- Overlay gradient -->
-    <div class="overlay"></div>
+  <div id="container"></div>
+  <div class="overlay"></div>
 
-    <!-- Contenu principal -->
-    <div class="container">
-        <h1 class="logo">FITSAFE <span class="nav-link-glow">IA</span></h1>
-        
-        <div class="ai-core">
-            <div class="sphere"></div>
-        </div>
+  <div class="content">
+    <h1>ATHENA</h1>
+    <p>L’intelligence FitSafe apprend à te connaître...<br>
+       Merci de patienter pendant la calibration de ses réseaux neuronaux.</p>
+    <div class="progress"><div class="fill"></div></div>
+  </div>
 
-        <h2 class="main-title">L'IA est en cours d'entraînement...</h2>
-        <p class="subtitle">
-            Notre intelligence artificielle de coaching sportif apprend à te comprendre. 
-            Reviens bientôt pour découvrir ta nouvelle expérience d'entraînement.
-        </p>
+  <footer>
+    © 2025 FitSafe AI — Propulsé par <span style="color:#ff006e;">Athena</span> 🤖 |
+    <a href="#">Instagram</a> •
+    <a href="#">LinkedIn</a> •
+    <a href="#">Politique de confidentialité</a>
+  </footer>
 
-        <div class="terminal">
-            <div class="terminal-line">> Initialisation du modèle d'IA...<span class="cursor"></span></div>
-            <div class="terminal-line">> Chargement des données d'entraînement...</div>
-            <div class="terminal-line">> Calibration des capteurs biométriques...</div>
-            <div class="terminal-line">> IA prête à te coacher bientôt 💪</div>
-        </div>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.162.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.162.0/examples/jsm/"
+    }
+  }
+  </script>
 
-        <div class="progress-container">
-            <div class="progress-bar">
-                <div class="progress-fill"></div>
-            </div>
-            <div class="progress-text">ENTRAÎNEMENT EN COURS</div>
-        </div>
-    </div>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+    import { GammaCorrectionShader } from 'three/addons/shaders/GammaCorrectionShader.js';
 
-    <!-- Footer -->
-    <footer>
-        <p>&copy; 2025 FitSafe AI — Tous droits réservés.</p>
-        <p>
-            <a href="https://instagram.com" target="_blank">Instagram</a> | 
-            <a href="https://linkedin.com" target="_blank">LinkedIn</a>
-        </p>
-    </footer>
+    let scene, camera, renderer, composer;
+    let particleSystem, neuronNetwork = [], connections = [];
+    const clock = new THREE.Clock();
 
-    <script>
-        // Configuration du canvas pour le réseau neuronal
-        const canvas = document.getElementById('neuralNetwork');
-        const ctx = canvas.getContext('2d');
+    const numParticles = 20000;
+    const numNeurons = 120;
+    const connectionDistance = 4;
+    const shapes = ['sphere', 'cube', 'torus', 'dna'];
+    let currentShapeIndex = 0;
+    let targetPositions = [];
+    let animationProgress = 1;
+    const animationDuration = 1.5;
 
-        // Adaptation de la taille du canvas
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+    init();
+    animate();
+    setInterval(changeShape, 10000);
+
+    function init() {
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
+      camera.position.z = 8;
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      document.getElementById('container').appendChild(renderer.domElement);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableZoom = false;
+      controls.enablePan = false;
+
+      // Lumières
+      scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+
+      // --- Réseau neuronal 3D ---
+      createNeuronNetwork();
+
+      // --- Particules centrales d'Athena ---
+      createAthenaCore();
+
+      // Post-processing
+      composer = new EffectComposer(renderer);
+      composer.addPass(new RenderPass(scene, camera));
+      const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.9, 0.5, 0.9);
+      composer.addPass(bloom);
+      composer.addPass(new ShaderPass(GammaCorrectionShader));
+
+      window.addEventListener('resize', onResize);
+    }
+
+    function createNeuronNetwork() {
+      const neuronGeo = new THREE.SphereGeometry(0.05, 8, 8);
+      const neurons = [];
+
+      for (let i = 0; i < numNeurons; i++) {
+        const color = Math.random() > 0.5 ? 0x00ffff : 0xff0044;
+        const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.8 });
+        const node = new THREE.Mesh(neuronGeo, mat);
+        node.position.set((Math.random()-0.5)*20, (Math.random()-0.5)*10, (Math.random()-0.5)*15);
+        scene.add(node);
+        neurons.push(node);
+      }
+
+      const material = new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.2 });
+
+      for (let i = 0; i < neurons.length; i++) {
+        for (let j = i + 1; j < neurons.length; j++) {
+          const a = neurons[i].position;
+          const b = neurons[j].position;
+          const dist = a.distanceTo(b);
+          if (dist < connectionDistance && Math.random() < 0.3) {
+            const lineGeo = new THREE.BufferGeometry().setFromPoints([a, b]);
+            const line = new THREE.Line(lineGeo, material.clone());
+            line.userData = { baseOpacity: Math.random() * 0.3 + 0.1, speed: Math.random() * 2 + 0.5 };
+            scene.add(line);
+            connections.push(line);
+          }
         }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
+      }
 
-        // Particules (neurones)
-        class Particle {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.vx = (Math.random() - 0.5) * 0.5;
-                this.vy = (Math.random() - 0.5) * 0.5;
-                this.radius = Math.random() * 2 + 1;
-            }
+      neuronNetwork = neurons;
+    }
 
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
+    function createAthenaCore() {
+      const geometry = new THREE.SphereGeometry(2, 64, 64);
+      const positions = new Float32Array(numParticles * 3);
+      const colors = new Float32Array(numParticles * 3);
 
-                // Rebond sur les bords
-                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
-                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
-            }
+      for (let i = 0; i < numParticles; i++) {
+        const phi = Math.acos(-1 + (2 * i) / numParticles);
+        const theta = Math.sqrt(numParticles * Math.PI) * phi;
+        const x = Math.sin(phi) * Math.cos(theta);
+        const y = Math.sin(phi) * Math.sin(theta);
+        const z = Math.cos(phi);
+        positions[i*3] = x * 2.0;
+        positions[i*3+1] = y * 2.0;
+        positions[i*3+2] = z * 2.0;
 
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(239, 68, 68, 0.6)';
-                ctx.fill();
-                
-                // Glow effect
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = 'rgba(239, 68, 68, 0.8)';
-                ctx.fill();
-                ctx.shadowBlur = 0;
-            }
+        const hue = (i / numParticles) * 360;
+        const color = new THREE.Color(`hsl(${hue},100%,60%)`);
+        colors[i*3] = color.r;
+        colors[i*3+1] = color.g;
+        colors[i*3+2] = color.b;
+      }
+
+      const bufferGeometry = new THREE.BufferGeometry();
+      bufferGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      bufferGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+      const material = new THREE.PointsMaterial({
+        size: 0.035,
+        vertexColors: true,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        opacity: 0.9
+      });
+
+      particleSystem = new THREE.Points(bufferGeometry, material);
+      scene.add(particleSystem);
+      targetPositions = positions.slice();
+    }
+
+    function changeShape() {
+      const shape = shapes[currentShapeIndex];
+      morphToShape(shape);
+      currentShapeIndex = (currentShapeIndex + 1) % shapes.length;
+    }
+
+    function morphToShape(type) {
+      let vertices = [];
+      const getVerts = geo => {
+        const attr = geo.getAttribute('position');
+        const verts = [];
+        for (let i = 0; i < attr.count; i++) {
+          const v = new THREE.Vector3();
+          v.fromBufferAttribute(attr, i);
+          verts.push(v);
         }
+        return verts;
+      };
 
-        // Création des particules
-        const particlesCount = window.innerWidth < 768 ? 40 : 80;
-        const particles = [];
-        for (let i = 0; i < particlesCount; i++) {
-            particles.push(new Particle());
+      switch (type) {
+        case 'sphere': vertices = getVerts(new THREE.SphereGeometry(2, 64, 64)); break;
+        case 'cube': vertices = getVerts(new THREE.BoxGeometry(3, 3, 3)); break;
+        case 'torus': vertices = getVerts(new THREE.TorusGeometry(1.8, 0.6, 32, 100)); break;
+        case 'dna': vertices = createDNAShape(); break;
+      }
+
+      const len = vertices.length;
+      for (let i = 0; i < numParticles; i++) {
+        const v = vertices[i % len];
+        targetPositions[i*3] = v.x;
+        targetPositions[i*3+1] = v.y;
+        targetPositions[i*3+2] = v.z;
+      }
+      animationProgress = 0;
+    }
+
+    function createDNAShape() {
+      const points = [];
+      const numPoints = 100;
+      const radius = 1.5;
+      const height = 3;
+      const turns = 2;
+      for (let i = 0; i < numPoints; i++) {
+        const t = (i / numPoints) * Math.PI * 2 * turns;
+        const y = (i / numPoints) * height - height / 2;
+        const x1 = Math.cos(t) * radius;
+        const z1 = Math.sin(t) * radius;
+        points.push(new THREE.Vector3(x1, y, z1));
+        const x2 = Math.cos(t + Math.PI) * radius;
+        const z2 = Math.sin(t + Math.PI) * radius;
+        points.push(new THREE.Vector3(x2, y, z2));
+      }
+      return points;
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+
+      scene.rotation.y += delta * 0.03;
+      connections.forEach(line => {
+        const t = Math.sin(clock.elapsedTime * line.userData.speed) * 0.5 + 0.5;
+        line.material.opacity = line.userData.baseOpacity + t * 0.3;
+      });
+
+      if (particleSystem) {
+        particleSystem.rotation.y += delta * 0.1;
+        if (animationProgress < 1) {
+          animationProgress += delta / animationDuration;
+          const pos = particleSystem.geometry.attributes.position.array;
+          for (let i = 0; i < numParticles * 3; i++) {
+            pos[i] += (targetPositions[i] - pos[i]) * 0.05;
+          }
+          particleSystem.geometry.attributes.position.needsUpdate = true;
         }
+      }
 
-        // Dessiner les connexions entre particules proches
-        function drawConnections() {
-            const maxDistance = 150;
-            
-            for (let i = 0; i < particles.length; i++) {
-                for (let j = i + 1; j < particles.length; j++) {
-                    const dx = particles[i].x - particles[j].x;
-                    const dy = particles[i].y - particles[j].y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
+      composer.render();
+    }
 
-                    if (distance < maxDistance) {
-                        const opacity = (1 - distance / maxDistance) * 0.3;
-                        ctx.beginPath();
-                        ctx.strokeStyle = `rgba(239, 68, 68, ${opacity})`;
-                        ctx.lineWidth = 1;
-                        ctx.moveTo(particles[i].x, particles[i].y);
-                        ctx.lineTo(particles[j].x, particles[j].y);
-                        ctx.stroke();
-                    }
-                }
-            }
-        }
-
-        // Animation principale
-        function animate() {
-            // Clear avec effet de traînée
-            ctx.fillStyle = 'rgba(10, 10, 10, 0.1)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Dessiner les connexions
-            drawConnections();
-
-            // Mettre à jour et dessiner les particules
-            particles.forEach(particle => {
-                particle.update();
-                particle.draw();
-            });
-
-            requestAnimationFrame(animate);
-        }
-
-        // Démarrage de l'animation
-        animate();
-
-        // Animation du texte terminal (effet machine à écrire)
-        const terminalLines = document.querySelectorAll('.terminal-line');
-        terminalLines.forEach((line, index) => {
-            const text = line.textContent.replace('<span class="cursor"></span>', '');
-            line.textContent = '';
-            
-            setTimeout(() => {
-                let charIndex = 0;
-                const typeInterval = setInterval(() => {
-                    if (charIndex < text.length) {
-                        line.textContent += text[charIndex];
-                        charIndex++;
-                    } else {
-                        clearInterval(typeInterval);
-                        if (index < terminalLines.length - 1) {
-                            line.innerHTML += '<span class="cursor"></span>';
-                        }
-                    }
-                }, 30);
-            }, index * 1000 + 500);
-        });
-    </script>
+    function onResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      composer.setSize(window.innerWidth, window.innerHeight);
+    }
+  </script>
 </body>
 </html>

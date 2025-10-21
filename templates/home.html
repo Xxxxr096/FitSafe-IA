@@ -147,29 +147,95 @@
     100% { background-position: 300%; }
   }
   /* ---- Effet de survol néon universel pour tous les boutons et liens importants ---- */
-  button,
-  a.bg-red-600,
-  a.bg-neutral-700,
-  a.text-red-500,
-  a.text-neutral-400,
-  .bg-red-600,
-  .bg-neutral-700 {
-    transition: all 0.3s ease-in-out;
+    button,
+    a.bg-red-600,
+    a.bg-neutral-700,
+    a.text-red-500,
+    a.text-neutral-400,
+    .bg-red-600,
+    .bg-neutral-700 {
+      transition: all 0.3s ease-in-out;
+    }
+
+    button:hover,
+    a.bg-red-600:hover,
+    a.bg-neutral-700:hover,
+    a.text-red-500:hover,
+    a.text-neutral-400:hover,
+    .bg-red-600:hover,
+    .bg-neutral-700:hover {
+      transform: scale(1.08);
+      filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.8));
+    }
+
+
+      /* ==== BOUTON NÉON FITSAFE ==== */
+  .neon-btn {
+    --clr-neon: #ef4444;
+    --clr-bg: transparent;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 1px;
+    color: var(--clr-neon);
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+    border: var(--clr-neon) 2px solid;
+    padding: 0.6em 1.8em;
+    border-radius: 0.5em;
+    text-shadow:
+      0 0 0.5em #fff,
+      0 0 0.8em var(--clr-neon);
+    box-shadow:
+      inset 0 0 0.8em var(--clr-neon),
+      0 0 1em var(--clr-neon);
+    background: var(--clr-bg);
+    transition: all 0.25s ease;
   }
 
-  button:hover,
-  a.bg-red-600:hover,
-  a.bg-neutral-700:hover,
-  a.text-red-500:hover,
-  a.text-neutral-400:hover,
-  .bg-red-600:hover,
-  .bg-neutral-700:hover {
-    transform: scale(1.08);
-    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.8));
+  .neon-btn::before {
+    content: "";
+    position: absolute;
+    top: 130%;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--clr-neon);
+    transform: perspective(0.4em) rotateX(15deg) scale(1.2, 0.4);
+    filter: blur(1em);
+    opacity: 0.6;
+    pointer-events: none;
+    transition: opacity 100ms linear;
   }
 
+  .neon-btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--clr-neon);
+    box-shadow: 0 0 2em var(--clr-neon);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 150ms linear;
+  }
 
-    
+  .neon-btn:hover::after {
+    opacity: 1;
+  }
+
+  .neon-btn:hover,
+  .neon-btn:focus {
+    color: white;
+    text-shadow:
+      0 0 10px #fff,
+      0 0 20px var(--clr-neon);
+    transform: scale(1.05);
+  }
+
+  .neon-btn:hover::before {
+    opacity: 0.8;
+  }
+
 
   </style>
 </head>
@@ -216,16 +282,17 @@
   <!-- ===== HERO ===== -->
   <section class="hero">
     <div class="hero-content px-6 pt-24">
-      <p class="text-red-400 mb-2 tracking-widest text-sm uppercase">Analyzing your potential...</p>
+      <p class="text-red-400 mb-2 tracking-widest text-sm uppercase"><span class="nav-link-glow">Analyzing your potential...</span></p>
       <h2 class="text-4xl md:text-6xl font-orbitron font-extrabold mb-4 glow">
         Ton coach <span class="nav-link-glow">IA</span> pour t’entraîner <br /> plus intelligemment 🧬
       </h2>
       <p class="text-neutral-300 max-w-xl mx-auto mb-8">
         FitSafe AI combine la puissance de l’intelligence artificielle et la science du mouvement pour t’aider à atteindre tes objectifs sans blessures.
       </p>
-      <a href="{{ url_for('dashboard') }}" class="bg-red-600 hover:bg-red-700 px-8 py-3 rounded-full text-lg font-semibold shadow-lg transition-all hover:shadow-red-500/40">
-        Commencer maintenant
+      <a href="{{ url_for('dashboard') }}" class="neon-btn">
+        <span class="nav-link-glow">Commencer maintenant</span>
       </a>
+      
     </div>
   </section>
 
@@ -324,7 +391,7 @@
   <section class="py-24 bg-neutral-950 text-center fade-up">
     <h3 class="text-3xl font-orbitron font-bold mb-6 glow">L’IA en action 🤖</h3>
     <p class="text-neutral-400 max-w-xl mx-auto mb-10">FitSafe AI apprend de chaque séance pour perfectionner ton plan d’entraînement et optimiser tes performances.</p>
-    <a href="{{ url_for('dashboard') }}" class="bg-red-600 hover:bg-red-700 px-8 py-3 rounded-full font-semibold transition-all shadow-lg hover:shadow-red-500/40">En savoir plus</a>
+    <a href="{{ url_for('dashboard') }}" class="neon-btn"><span class="nav-link-glow">En savoir plus</span></a>
   </section>
 
   <!-- ===== SECTION 4 - Mobile Ready ===== -->
