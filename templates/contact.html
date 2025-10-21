@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FitSafe AI - Contact</title>
+
+    <!-- Fonts & Tailwind -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='image/logo2.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background: radial-gradient(circle at top, #0a0a0a 0%, #000 100%);
+        color: white;
+        overflow-x: hidden;
+        position: relative;
+      }
+
+      canvas#bgCanvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      header,
+      main,
+      footer {
+        position: relative;
+        z-index: 2;
+      }
+
+      .glow {
+        text-shadow: 0 0 15px rgba(239, 68, 68, 0.8);
+      }
+
+      .neon-input {
+        background: rgba(20, 20, 20, 0.9);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: white;
+        transition: all 0.3s ease;
+      }
+      .neon-input:focus {
+        outline: none;
+        border-color: #ef4444;
+        box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+      }
+
+      .neon-btn {
+        background: linear-gradient(90deg, #ef4444, #ff5555);
+        box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+        transition: all 0.3s ease;
+      }
+      .neon-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 30px rgba(239, 68, 68, 0.8);
+      }
+
+      .fade-up {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.8s ease, transform 0.8s ease;
+      }
+      .fade-up.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .nav-link-glow {
+        font-weight: 700;
+        background: linear-gradient(90deg, #ef4444, #ff006e, #00ffff, #ef4444);
+        background-size: 300%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: glow-shift 3s linear infinite;
+        text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        transition: transform 0.3s ease;
+      }
+    
+      .nav-link-glow:hover {
+        transform: scale(1.15);
+        text-shadow: 0 0 20px rgba(255,255,255,0.6);
+      }
+    
+      @keyframes glow-shift {
+        0% { background-position: 0%; }
+        100% { background-position: 300%; }
+      }
+      /* ---- Effet de survol néon universel pour tous les boutons et liens importants ---- */
+      button,
+      a.bg-red-600,
+      a.bg-neutral-700,
+      a.text-red-500,
+      a.text-neutral-400,
+      .bg-red-600,
+      .bg-neutral-700 {
+        transition: all 0.3s ease-in-out;
+      }
+
+      button:hover,
+      a.bg-red-600:hover,
+      a.bg-neutral-700:hover,
+      a.text-red-500:hover,
+      a.text-neutral-400:hover,
+      .bg-red-600:hover,
+      .bg-neutral-700:hover {
+        transform: scale(1.08);
+        filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.8));
+      }
+
+    </style>
+  </head>
+
+  <body class="min-h-screen flex flex-col">
+    <!-- Canvas IA -->
+    <canvas id="bgCanvas"></canvas>
+
+    <!-- ===== NAVBAR ===== -->
+    <header
+      class="fixed top-0 w-full z-50 bg-neutral-900/80 backdrop-blur-md border-b border-neutral-800"
+    >
+      <div
+        class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4"
+      >
+      <h1 class="text-2xl font-orbitron font-bold text-red-500 tracking-wide">
+        FitSafe <span class="nav-link-glow">IA</span>
+      </h1>
+      
+        <nav class="hidden md:flex space-x-8 text-sm font-medium">
+          <a href="{{ url_for('home') }}" class="hover:text-red-500 transition"
+            >Accueil</a
+          >
+          <a
+            href="{{ url_for('dashboard') }}"
+            class="hover:text-red-500 transition"
+            >Tableau de bord</a
+          >
+          <a href="{{ url_for('advis') }}" class="hover:text-red-500 transition"
+            >Conseils</a
+          >
+          <a
+            href="{{ url_for('profil') }}"
+            class="hover:text-red-500 transition"
+            >Profil</a
+          >
+          <a href="{{ url_for('contact') }}" class="text-red-500 font-semibold"
+            >Contact</a
+          >
+          <a href="{{ url_for('ia') }}" class="nav-link-glow">IA</a>
+
+        </nav>
+        <a
+          href="{{ url_for('logout') }}"
+          class="text-sm text-neutral-400 hover:text-red-500 transition"
+          >Se déconnecter</a
+        >
+      </div>
+    </header>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div id="flash-container" class="fixed top-6 right-6 space-y-3 z-50">
+          {% for category, message in messages %}
+            <div class="flash-message flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border text-sm
+                        {% if category == 'error' %}bg-red-800/90 border-red-600 text-red-100
+                        {% elif category == 'success' %}bg-green-800/90 border-green-600 text-green-100
+                        {% elif category == 'warning' %}bg-yellow-700/90 border-yellow-500 text-yellow-100
+                        {% else %}bg-neutral-800/90 border-neutral-600 text-neutral-200{% endif %}">
+              <i data-lucide="{% if category == 'error' %}x-circle{% elif category == 'success' %}check-circle{% elif category == 'warning' %}alert-triangle{% else %}info{% endif %}" class="w-5 h-5"></i>
+              <span>{{ message }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+
+    <!-- ===== HERO ===== -->
+    <section class="pt-32 pb-10 text-center max-w-3xl mx-auto px-6 fade-up">
+      <h2
+        class="text-5xl md:text-6xl font-extrabold glow mb-4 font-[Orbitron] tracking-wider"
+      >
+        Contacte ton coach <span class="nav-link-glow">IA</span> 🤖
+      </h2>
+      <p class="text-neutral-400 text-lg">
+        Une question, une suggestion ou un partenariat ? L’équipe FitSafe AI est
+        à ton écoute.
+      </p>
+    </section>
+
+    <!-- ===== FORMULAIRE DE CONTACT ===== -->
+    <main class="max-w-4xl mx-auto px-6 py-10 fade-up">
+      <form
+        method="POST"
+        action="{{ url_for('contact') }}"
+        class="bg-neutral-900/80 rounded-2xl p-8 border border-neutral-800 shadow-lg space-y-6"
+      >
+        {{ form.hidden_tag() }}
+        <div>
+          <label class="block text-sm text-neutral-400 mb-2">Nom complet</label>
+          <input
+            type="text"
+            name="nom"
+            placeholder="Ex : Jean Deltoire"
+            required
+            class="neon-input w-full rounded-lg px-4 py-3"
+          />
+        </div>
+        <div>
+          <label class="block text-sm text-neutral-400 mb-2"
+            >Adresse e-mail</label
+          >
+          <input
+            type="email"
+            name="email"
+            placeholder="exemple@email.com"
+            required
+            class="neon-input w-full rounded-lg px-4 py-3"
+          />
+        </div>
+        <div>
+          <label class="block text-sm text-neutral-400 mb-2">Sujet</label>
+          <input
+            type="text"
+            name="sujet"
+            placeholder="Sujet de votre message"
+            required
+            class="neon-input w-full rounded-lg px-4 py-3"
+          />
+        </div>
+        <div>
+          <label class="block text-sm text-neutral-400 mb-2">Message</label>
+          <textarea
+            name="message"
+            rows="5"
+            placeholder="Écris ton message ici..."
+            required
+            class="neon-input w-full rounded-lg px-4 py-3 resize-none"
+          ></textarea>
+        </div>
+        <button
+          type="submit"
+          class="neon-btn w-full py-3 rounded-full font-semibold text-lg"
+        >
+          Envoyer le message
+        </button>
+      </form>
+
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <div class="mt-6 text-center">
+        {% for category, message in messages %}
+        <p class="text-{{ 'green' if category == 'success' else 'red' }}-500">
+          {{ message }}
+        </p>
+        {% endfor %}
+      </div>
+      {% endif %} {% endwith %}
+    </main>
+
+
+    <!-- ===== FOOTER ===== -->
+    <footer
+      class="text-center text-neutral-500 text-sm py-10 border-t border-neutral-800 bg-neutral-950"
+    >
+      <p>&copy; 2025 FitSafe AI — Tous droits réservés.</p>
+    </footer>
+
+    <script>
+      lucide.createIcons();
+
+      // === Apparition au scroll ===
+      const fadeElems = document.querySelectorAll(".fade-up");
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) entry.target.classList.add("visible");
+          });
+        },
+        { threshold: 0.2 }
+      );
+      fadeElems.forEach((el) => observer.observe(el));
+
+      // === Canvas IA ===
+      const canvas = document.getElementById("bgCanvas");
+      const ctx = canvas.getContext("2d");
+      let particles = [];
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      window.addEventListener("resize", resize);
+      resize();
+
+      class Particle {
+        constructor() {
+          this.x = Math.random() * canvas.width;
+          this.y = Math.random() * canvas.height;
+          this.vx = (Math.random() - 0.5) * 0.4;
+          this.vy = (Math.random() - 0.5) * 0.4;
+          this.radius = Math.random() * 2 + 1;
+        }
+        move() {
+          this.x += this.vx;
+          this.y += this.vy;
+          if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+          if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+        }
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(239, 68, 68, 0.7)";
+          ctx.fill();
+        }
+      }
+
+      for (let i = 0; i < 100; i++) particles.push(new Particle());
+
+      function connectParticles(mouseX, mouseY) {
+        for (let a = 0; a < particles.length; a++) {
+          for (let b = a + 1; b < particles.length; b++) {
+            const dx = particles[a].x - particles[b].x;
+            const dy = particles[a].y - particles[b].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 120) {
+              const intensity = 1 - dist / 120;
+              ctx.beginPath();
+              ctx.strokeStyle = `rgba(239, 68, 68, ${intensity})`;
+              ctx.lineWidth = 0.3;
+              ctx.moveTo(particles[a].x, particles[a].y);
+              ctx.lineTo(particles[b].x, particles[b].y);
+              ctx.stroke();
+            }
+          }
+
+          // Attraction des particules vers la souris
+          if (mouseX && mouseY) {
+            const dx = particles[a].x - mouseX;
+            const dy = particles[a].y - mouseY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 150) {
+              particles[a].x += dx * -0.02;
+              particles[a].y += dy * -0.02;
+            }
+          }
+        }
+      }
+
+      let mouse = { x: null, y: null };
+      window.addEventListener("mousemove", (e) => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+      });
+
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((p) => {
+          p.move();
+          p.draw();
+        });
+        connectParticles(mouse.x, mouse.y);
+        requestAnimationFrame(animate);
+      }
+      animate();
+    </script>
+    <script>
+      lucide.createIcons();
+      // disparition automatique des flash après 6 secondes
+      setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(el => {
+          el.style.transition = 'opacity 0.6s, transform 0.6s';
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(-10px)';
+          setTimeout(() => el.remove(), 600);
+        });
+      }, 6000);
+    </script>
+    
+  </body>
+</html>

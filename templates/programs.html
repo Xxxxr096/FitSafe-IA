@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+
+  <title>FitSafe AI - Programmes Fitness</title>
+
+  <!-- Tailwind & Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body { font-family: 'Poppins', sans-serif; }
+    .program-card {
+      transition: all 0.3s ease;
+    }
+    .program-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+    }
+  </style>
+</head>
+
+<body class="bg-neutral-950 text-white min-h-screen flex flex-col">
+
+  <!-- ===== NAVBAR ===== -->
+  <header class="fixed top-0 w-full z-50 bg-neutral-900/80 backdrop-blur-md border-b border-neutral-800">
+    <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+      <h1 class="text-2xl font-bold text-red-500 tracking-wide">FitSafe AI</h1>
+      <nav class="hidden md:flex space-x-8 text-sm font-medium">
+        <a href="/" class="hover:text-red-500 transition">Accueil</a>
+        <a href="/dashboard" class="hover:text-red-500 transition">Tableau de bord</a>
+        <a href="/ia" class="hover:text-red-500 transition">IA</a>
+        <a href="/programs" class="text-red-500 font-semibold">Programmes</a>
+        <a href="/boutique" class="hover:text-red-500 transition">Boutique</a>
+        <a href="/profil" class="hover:text-red-500 transition">Profil</a>
+      </nav>
+      <button class="md:hidden text-white"><i data-lucide="menu"></i></button>
+    </div>
+  </header>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="flex-1 pt-24 pb-16 px-6 md:px-12 max-w-7xl mx-auto text-center">
+
+    <!-- Header -->
+    <section class="mb-12">
+      <h2 class="text-4xl font-extrabold mb-3">Programmes Fitness</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto">
+        Choisis le programme adapté à ton niveau et à tes objectifs.  
+        FitSafe AI t’accompagne vers des performances durables et sans blessures.
+      </p>
+    </section>
+
+    <!-- Program Cards -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-10">
+
+      <!-- Débutant -->
+      <div class="program-card bg-neutral-900 rounded-2xl border border-neutral-800 overflow-hidden shadow-md">
+        <img src="https://images.unsplash.com/photo-1583454110558-06259d6d40d5?auto=format&fit=crop&w=800&q=80" 
+             alt="Débutant – Force & Technique" 
+             class="w-full h-56 object-cover">
+        <div class="p-6 text-left flex flex-col justify-between h-60">
+          <div>
+            <h3 class="text-xl font-semibold mb-2">Débutant – Force & Technique</h3>
+            <p class="text-neutral-400 text-sm">
+              Apprends les bases solides : exécution parfaite, stabilité et force fonctionnelle.
+            </p>
+          </div>
+          <a href="#" class="mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded-full text-center transition">
+            Voir le programme
+          </a>
+        </div>
+      </div>
+
+      <!-- Intermédiaire -->
+      <div class="program-card bg-neutral-900 rounded-2xl border border-neutral-800 overflow-hidden shadow-md">
+        <img src="https://images.unsplash.com/photo-1598970434795-0c54fe7c0642?auto=format&fit=crop&w=800&q=80" 
+             alt="Intermédiaire – Masse & Volume" 
+             class="w-full h-56 object-cover">
+        <div class="p-6 text-left flex flex-col justify-between h-60">
+          <div>
+            <h3 class="text-xl font-semibold mb-2">Intermédiaire – Masse & Volume</h3>
+            <p class="text-neutral-400 text-sm">
+              Gagne en puissance et en volume musculaire grâce à des cycles d’intensité progressifs.
+            </p>
+          </div>
+          <a href="#" class="mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded-full text-center transition">
+            Voir le programme
+          </a>
+        </div>
+      </div>
+
+      <!-- Avancé -->
+      <div class="program-card bg-neutral-900 rounded-2xl border border-neutral-800 overflow-hidden shadow-md">
+        <img src="https://images.unsplash.com/photo-1605296867424-35fc25c9212a?auto=format&fit=crop&w=800&q=80" 
+             alt="Avancé – Performance & Esthétique" 
+             class="w-full h-56 object-cover">
+        <div class="p-6 text-left flex flex-col justify-between h-60">
+          <div>
+            <h3 class="text-xl font-semibold mb-2">Avancé – Performance & Esthétique</h3>
+            <p class="text-neutral-400 text-sm">
+              Optimise ta force, ton endurance et ta symétrie musculaire pour un physique complet.
+            </p>
+          </div>
+          <a href="#" class="mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded-full text-center transition">
+            Voir le programme
+          </a>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="bg-neutral-950 border-t border-neutral-800 py-10">
+    <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between space-y-6 md:space-y-0">
+      <p class="text-neutral-500 text-sm">&copy; 2025 FitSafe AI. Tous droits réservés.</p>
+      <div class="flex space-x-6">
+        <a href="#" class="text-neutral-400 hover:text-red-500 transition"><i data-lucide="instagram"></i></a>
+        <a href="#" class="text-neutral-400 hover:text-red-500 transition"><i data-lucide="twitter"></i></a>
+        <a href="#" class="text-neutral-400 hover:text-red-500 transition"><i data-lucide="facebook"></i></a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    lucide.createIcons();
+  </script>
+
+</body>
+</html>

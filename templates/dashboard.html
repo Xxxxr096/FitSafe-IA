@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FitSafe AI - Tableau de bord</title>
+
+  <!-- TailwindCSS & Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='image/logo2.png') }}">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body { font-family: "Poppins", sans-serif; }
+    select, input, button { transition: all 0.2s ease-in-out; }
+    .nav-link-glow {
+      font-weight: 700;
+      background: linear-gradient(90deg, #ef4444, #ff006e, #00ffff, #ef4444);
+      background-size: 300%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: glow-shift 3s linear infinite;
+      text-shadow: 0 0 10px rgba(255,255,255,0.3);
+      transition: transform 0.3s ease;
+    }
+  
+    .nav-link-glow:hover {
+      transform: scale(1.15);
+      text-shadow: 0 0 20px rgba(255,255,255,0.6);
+    }
+  
+    @keyframes glow-shift {
+      0% { background-position: 0%; }
+      100% { background-position: 300%; }
+    }
+    /* ---- Effet de survol néon universel pour tous les boutons et liens importants ---- */
+    button,
+    a.bg-red-600,
+    a.bg-neutral-700,
+    a.text-red-500,
+    a.text-neutral-400,
+    .bg-red-600,
+    .bg-neutral-700 {
+      transition: all 0.3s ease-in-out;
+    }
+
+    button:hover,
+    a.bg-red-600:hover,
+    a.bg-neutral-700:hover,
+    a.text-red-500:hover,
+    a.text-neutral-400:hover,
+    .bg-red-600:hover,
+    .bg-neutral-700:hover {
+      transform: scale(1.08);
+      filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.8));
+    }
+
+  </style>
+</head>
+
+<body class="bg-neutral-950 text-white min-h-screen flex flex-col">
+  <!-- ===== NAVBAR ===== -->
+  <header class="fixed top-0 w-full z-50 bg-neutral-900/80 backdrop-blur-md border-b border-neutral-800">
+    <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+      <h1 class="text-2xl font-orbitron font-bold text-red-500 tracking-wide">
+        FitSafe <span class="nav-link-glow">IA</span>
+      </h1>
+      
+      <nav class="hidden md:flex space-x-8 text-sm font-medium">
+        <a href="{{ url_for('home') }}" class="hover:text-red-500 transition">Accueil</a>
+        <a href="{{ url_for('dashboard') }}" class="text-red-500 font-semibold">Tableau de bord</a>
+        <a href="{{ url_for('advis') }}" class="hover:text-red-500 transition">Conseils</a>
+        <a href="{{ url_for('profil') }}" class="hover:text-red-500 transition">Profil</a>
+        <a href="{{ url_for('contact') }}" class="hover:text-red-500 transition">Contact</a>
+        <a href="{{ url_for('ia') }}" class="nav-link-glow">IA</a>
+
+      </nav>
+      <a href="{{ url_for('logout') }}" class="text-sm text-neutral-400 hover:text-red-500 transition">Se déconnecter</a>
+      <button class="md:hidden text-white"><i data-lucide="menu"></i></button>
+    </div>
+  </header>
+  <!-- ===== FLASH MESSAGES ===== -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div id="flash-container" class="fixed top-4 right-4 space-y-3 z-50">
+          {% for category, message in messages %}
+            <div class="flash-message flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border text-sm
+                        {% if category == 'error' %}bg-red-800/90 border-red-600 text-red-100
+                        {% elif category == 'success' %}bg-green-800/90 border-green-600 text-green-100
+                        {% elif category == 'warning' %}bg-yellow-700/90 border-yellow-500 text-yellow-100
+                        {% else %}bg-neutral-800/90 border-neutral-600 text-neutral-200{% endif %}">
+              <i data-lucide="{% if category == 'error' %}x-circle{% elif category == 'success' %}check-circle{% elif category == 'warning' %}alert-triangle{% else %}info{% endif %}" class="w-5 h-5"></i>
+              <span>{{ message }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="flex-1 pt-24 pb-16 px-6 md:px-12 max-w-7xl mx-auto space-y-10">
+
+    <!-- 👋 Bienvenue -->
+    <section>
+      <h2 class="text-3xl md:text-4xl font-bold">
+        Bienvenue, <span class="text-red-500">{{ current_user.nom if current_user.is_authenticated else 'Invité' }} 💪</span>
+      </h2>
+      <p class="text-neutral-400 mt-2">Voici ton état de forme et ton suivi d’entraînement.</p>
+    </section>
+  
+    <!-- 🎯 Sélection de séance -->
+    <section class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-neutral-900 border border-neutral-800 rounded-2xl p-5 shadow-lg">
+      <form method="GET" action="{{ url_for('dashboard') }}" class="flex gap-3 items-center">
+        <label for="session_id" class="text-neutral-400 text-sm">Séance :</label>
+        <select name="session_id" id="session_id"
+                class="bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-red-600">
+          <option value="">Toutes les séances</option>
+          {% for s in sessions %}
+          <option value="{{ s.id }}" {% if selected_session and s.id == selected_session.id %}selected{% endif %}>
+            {{ s.name }}
+          </option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-semibold">Afficher</button>
+      </form>
+  
+      <form action="{{ url_for('add_session') }}" method="POST" class="flex gap-2 items-center">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="text" name="name" placeholder="Nouvelle séance"
+               class="bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-green-600"
+               required>
+        <button type="submit" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg font-bold">+</button>
+      </form>
+    </section>
+  
+    <!-- 🧠 Dashboard principal -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+  
+      <!-- Graph de progression -->
+      <div class="lg:col-span-2 bg-neutral-900 rounded-2xl p-6 shadow-lg border border-neutral-800">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-semibold">Progression de l’entraînement</h3>
+          <i data-lucide="line-chart" class="w-6 h-6 text-red-500"></i>
+        </div>
+        <div class="h-64 bg-neutral-800 rounded-xl p-4">
+          <canvas id="workoutChart"></canvas>
+        </div>
+      </div>
+  
+      <!-- Risque de blessure -->
+      <div class="bg-neutral-900 rounded-2xl p-6 shadow-lg border border-neutral-800 flex flex-col justify-between">
+        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
+          <i data-lucide="alert-triangle" class="text-red-500"></i>
+          Risque de blessure actuel
+        </h3>
+        <div class="flex justify-center items-center h-40">
+          {% if risk_score %}
+            {% if risk_score < 30 %}
+              <div class="w-32 h-32 rounded-full flex items-center justify-center text-2xl font-bold text-green-400 border-4 border-green-500">
+                {{ risk_score }}%
+              </div>
+            {% elif risk_score < 70 %}
+              <div class="w-32 h-32 rounded-full flex items-center justify-center text-2xl font-bold text-yellow-400 border-4 border-yellow-500">
+                {{ risk_score }}%
+              </div>
+            {% else %}
+              <div class="w-32 h-32 rounded-full flex items-center justify-center text-2xl font-bold text-red-400 border-4 border-red-500">
+                {{ risk_score }}%
+              </div>
+            {% endif %}
+          {% else %}
+            <div class="text-neutral-500">Pas encore de données 🧠</div>
+          {% endif %}
+        </div>
+        <p class="text-center text-neutral-400 text-sm mt-4">
+          {{ risk_message or "Les recommandations apparaîtront ici après tes premières séances." }}
+        </p>
+      </div>
+    </section>
+    <!-- 💪 Score de forme -->
+    <section class="bg-neutral-900 rounded-2xl p-6 shadow-lg border border-neutral-800 text-center">
+      <h3 class="text-xl font-semibold mb-3 flex justify-center items-center gap-2">
+        <i data-lucide="heart-pulse" class="text-red-500"></i>
+        Score de forme 
+      </h3>
+
+      {% if fitness_score %}
+        <div class="text-5xl font-bold {% if fitness_score > 75 %}text-green-400{% elif fitness_score > 50 %}text-yellow-400{% else %}text-red-400{% endif %}">
+          {{ fitness_score }}%
+        </div>
+        <p class="text-neutral-400 mt-2 text-sm">Calculé selon ta charge, ta régularité et ton risque de blessure.</p>
+      {% else %}
+        <p class="text-neutral-500 italic">Pas assez de données pour évaluer ton score.</p>
+      {% endif %}
+    </section>
+
+    <!-- Analyse IA -->
+    <section class="mt-10 bg-neutral-900 p-8 rounded-2xl border border-neutral-800 text-center">
+      <h3 class="text-2xl font-bold mb-4">Analyse IA 🧠</h3>
+
+      <p class="text-red-500 text-lg font-semibold">
+        Risque actuel : {{ risk_score }}%
+      </p>
+
+      <p class="text-neutral-400 mt-2">
+        {{ risk_message }}
+      </p>
+
+      <p class="text-neutral-400 italic mt-1">
+        {{ focus_message }}
+      </p>
+
+      {% if weather %}
+        <p class="text-sm text-neutral-500 mt-3">
+          Météo actuelle : {{ weather.temp }}°C ({{ weather.condition }})
+        </p>
+      {% endif %}
+    </section>
+
+    
+    <!-- 📋 Séances et exercices -->
+<section class="bg-neutral-900 rounded-2xl p-6 border border-neutral-800">
+    <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
+      <i data-lucide="activity" class="text-red-500"></i> Suivi de tes séances
+    </h3>
+  
+    {% if sessions %}
+      {% for s in sessions %}
+        <div class="mb-6 bg-neutral-800 rounded-xl p-5 shadow-inner">
+          <div class="flex justify-between items-center cursor-pointer" onclick="toggleSession(this)">
+            <h4 class="text-lg font-semibold text-red-400 flex items-center gap-2">
+              <i data-lucide="calendar"></i> {{ s.name }}
+            </h4>
+            <button class="toggle-btn text-neutral-400 hover:text-red-400 transition">
+              <i data-lucide="chevron-down"></i>
+            </button>
+          </div>
+          
+          <!-- 🗑️ Bouton suppression de la séance -->
+          <form action="{{ url_for('delete_session', id=s.id) }}" method="POST" class="inline-block mb-3"
+          onsubmit="return confirm('Supprimer cette séance et tous ses exercices ?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit"
+                  class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1 rounded-lg transition">
+              Supprimer la séance 🗑️
+              </button>
+          </form>
+
+  
+          {% set workouts_for_session = workouts | selectattr("session_id", "equalto", s.id) | list %}
+          <div class="exercise-list mt-4 space-y-3">
+            {% if workouts_for_session %}
+              <ul class="space-y-3">
+                {% for w in workouts_for_session %}
+                <li class="flex justify-between items-center border-b border-neutral-700 pb-2 text-neutral-300">
+                  <div>
+                    <span class="font-medium">{{ w.exercise }}</span>
+                    <span class="text-neutral-400 text-sm">
+                      — {{ w.series }} séries x {{ w.reps }} reps ({{ w.duration }} min)
+                    </span>
+                  </div>
+                
+                  <div class="text-green-400 text-sm font-semibold">
+                    🔥 {{ calories_par_exercice[w.id] }} kcal
+                  </div>
+                
+                    <form action="{{ url_for('delete_workout', id=w.id) }}" method="POST"
+                          onsubmit="return confirm('Supprimer cet exercice ?');">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="text-neutral-400 hover:text-red-500 transition">
+                        <i data-lucide="trash-2"></i>
+                      </button>
+                    </form>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-neutral-500 italic">Aucun exercice ajouté pour cette séance.</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-neutral-500 italic">Aucune séance enregistrée pour l’instant.</p>
+      {% endif %}
+  </div>
+  </section>
+  <!-- 🏋️ Ajouter un exercice -->
+<section class="bg-neutral-900 rounded-2xl p-6 border border-neutral-800">
+    <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
+      <i data-lucide="plus-circle" class="text-red-500"></i> Ajouter un exercice
+    </h3>
+  
+    <form action="{{ url_for('add_workout') }}" method="POST" class="grid grid-cols-1 md:grid-cols-6 gap-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <!-- Choix de la séance -->
+      <div>
+        <label for="session_id" class="block text-sm mb-1 text-neutral-400">Séance</label>
+        <select name="session_id" id="session_id_form" required
+                class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-red-600">
+          {% for s in sessions %}
+          <option value="{{ s.id }}">{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+  
+      <!-- Type d'entraînement -->
+      <div>
+        <label for="type" class="block text-sm mb-1 text-neutral-400">Type d'entraînement</label>
+        <select name="type" id="type" required
+                class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-red-600"
+                onchange="updateExercises()">
+          <option value="">Choisir...</option>
+          <option value="Pectoraux">Pectoraux</option>
+          <option value="Dos">Dos</option>
+          <option value="Jambes">Jambes</option>
+          <option value="Épaules">Épaules</option>
+          <option value="Avant_Bras">Avant bras</option>
+          <option value="Abdominaux">Abdominaux</option>
+          <option value="Biceps">Biceps</option>
+          <option value="Triceps">Triceps</option>
+          <option value="Cardio">Cardio</option>
+        </select>
+      </div>
+  
+      <!-- Exercice dynamique -->
+      <div>
+        <label for="exercise" class="block text-sm mb-1 text-neutral-400">Exercice</label>
+        <select name="exercise" id="exercise" required
+                class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-red-600">
+          <option value="">Choisir un exercice</option>
+        </select>
+      </div>
+  
+      <!-- Séries -->
+      <div>
+        <label for="series" class="block text-sm mb-1 text-neutral-400">Séries</label>
+        <input type="number" name="series" id="series" min="1" required
+               class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-red-600">
+      </div>
+  
+      <!-- Répétitions -->
+      <div>
+        <label for="reps" class="block text-sm mb-1 text-neutral-400">Répétitions</label>
+        <input type="number" name="reps" id="reps" min="1" required
+               class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-red-600">
+      </div>
+  
+      <!-- Durée -->
+      <div>
+        <label for="duration" class="block text-sm mb-1 text-neutral-400">Durée (min)</label>
+        <input type="number" name="duration" id="duration" min="5" required
+               class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-red-600">
+      </div>
+  
+      <!-- Bouton -->
+      <div class="flex items-end">
+        <button type="submit" class="w-full bg-red-600 hover:bg-red-700 font-semibold py-2 px-4 rounded-lg transition">
+          Ajouter
+        </button>
+      </div>
+    </form>
+  </section>
+  
+  <!-- Script pour les exercices dynamiques -->
+  <script>
+    const exercisesByType = {
+      "Pectoraux":[
+        "Développé couché barre",
+        "Développé couché haltères",
+        "Développé incliné barre",
+        "Développé incliné haltères",
+        "Développé décliné barre",
+        "Développé décliné haltères",
+        "Écartés couchés haltères",
+        "Écartés inclinés haltères",
+        "Écartés déclinés haltères",
+        "Écartés à la poulie vis-à-vis basse",
+        "Écartés à la poulie vis-à-vis haute",
+        "Cross-over à la poulie (debout)",
+
+        "Pompes classiques",
+        "Pompes déclinées",
+        "Pompes inclinées",
+        "Pompes surélevées",
+        "Dips (pectoraux, buste penché)",
+    
+        
+        "Développé couché à la machine (Smith Machine)",
+        "Développé incliné à la machine",
+        "Développé décliné à la machine",
+        "Développé à la machine convergente (Hammer Strength)",
+        "Développé à la machine convergente Technogym",
+    
+        
+        "Écarté à la machine Pec Deck (Butterfly)",
+        "Écarté assis à la machine convergente",
+        "Écarté couché à la machine",
+        "Écarté incliné à la machine",
+    
+        
+        "Crossover à la poulie vis-à-vis haute",
+        "Crossover à la poulie vis-à-vis basse",
+        "Écarté à la poulie unilatérale",
+        "Press à la poulie debout",
+    
+        
+        "Pompes sur anneaux",
+        "Pompes TRX",
+        "Écarté TRX",
+        "Développé haltères sur ballon de gym",
+        "Pompes lestées",
+        "Pompes explosives / pliométriques",
+        "Pompes diamant (diamond push-up)",
+        "Pompes Spiderman",
+        "Pompes unilatérales"
+        ],
+      "Dos": [
+        "Rowing barre pronation",
+        "Rowing barre supination",
+        "Rowing haltère un bras",
+        "Rowing haltères deux bras sur banc incliné",
+        "Rowing Yates (prise supination)",
+        "Rowing T-bar",
+        "Rowing avec kettlebell",
+        "Rowing inversé avec barre",
+    
+        "Soulevé de terre classique",
+        "Soulevé de terre sumo",
+        "Soulevé de terre jambes tendues",
+        "Pull-over haltères",
+        "Shrugs haltères",
+        "Shrugs barre",
+    
+        "Tirage horizontal machine",
+        "Tirage assis poulie basse",
+        "Tirage unilatéral machine convergente",
+        "Row machine Hammer Strength",
+        "Row assis Technogym",
+        "Tirage horizontal câble neutre",
+    
+        "Tirage vertical poulie haute (large)",
+        "Tirage vertical poulie prise serrée",
+        "Tirage vertical unilatéral",
+        "Lat Pulldown convergent",
+        "Tirage vertical assisté",
+        "Tirage prise supination (chin pulldown)",
+    
+        "Tractions pronation",
+        "Tractions supination",
+        "Tractions neutres",
+        "Tractions lestées",
+        "Tractions barre fixe",
+        "Tractions australiennes (row inversé)",
+        "Pont dos (back bridge)",
+        "Superman au sol",
+        "Reverse plank",
+        "Tractions TRX / anneaux",
+        "Rowing inversé TRX",
+    
+        
+        "Tirage poulie unilatéral",
+        "Row poulie basse unilatéral",
+        "Tirage poulie haute un bras",
+        "Face pull (tirage vis-à-vis visage)",
+        "Pullover poulie haute bras tendus",
+        "Tirage droit bras tendus (standing cable pulldown)",
+        "Crossover dos (vis-à-vis inversé)",
+        "Shrugs poulie basse",
+    
+    
+        "Soulevé de terre trap bar",
+        "Rowing bande élastique",
+        "Face pull bande élastique",
+        "Tirage vertical élastique",
+        "TRX Row",
+        "Kettlebell swing"
+    ],
+      "Jambes": [
+      
+      "Squat barre libre",
+      "Front squat (squat avant)",
+      "Squat goblet",
+      "Squat sumo",
+      "Squat bulgare (split squat)",
+      "Squat gobelet sur banc",
+      "Fente avant squat",
+      "Overhead squat",
+      "Zercher squat",
+  
+     
+      "Fente avant haltères",
+      "Fente arrière haltères",
+      "Fentes marchées",
+      "Fentes sur place",
+      "Fentes bulgares",
+      "Fentes latérales",
+      "Fentes avec barre",
+      "Fentes croisées (curtsy lunge)",
+  
+      
+      "Soulevé de terre jambes tendues",
+      "Soulevé de terre roumain",
+      "Soulevé de terre haltères",
+      "Soulevé de terre sumo",
+      "Soulevé de terre trap bar",
+  
+      
+      "Hip thrust barre",
+      "Hip thrust haltères",
+      "Step-up sur banc",
+      "Good morning",
+      "Jefferson squat",
+      "Kettlebell swing",
+  
+     
+      "Presse à cuisses",
+      "Extension de jambes machine",
+      "Hack squat machine",
+      "Squat guidé (Smith machine)",
+      "Sissy squat machine",
+      "Belt squat",
+  
+      
+      "Leg curl allongé",
+      "Leg curl assis",
+      "Glute machine (kickback)",
+      "Hip thrust machine",
+      "Abducteur machine",
+      "Adducteur machine",
+      "Glute drive machine",
+  
+    
+      "Mollets debout machine",
+      "Mollets assis machine",
+      "Mollets à la presse à cuisses",
+      "Mollets à la Smith machine",
+  
+     
+      "Squat poids du corps",
+      "Fente poids du corps",
+      "Fentes sautées",
+      "Squat saut (jump squat)",
+      "Squat sumo sans charge",
+      "Montées de genoux",
+      "Step-up sans charge",
+      "Pont fessier au sol",
+      "Extension hanche au sol",
+      "Pont jambes tendues",
+      "Fente pliométrique",
+      "Wall sit (squat isométrique)",
+  
+    
+      "Kickback poulie basse",
+      "Élévation latérale jambe poulie",
+      "Fente avant poulie",
+      "Pull-through poulie basse",
+      "Tirage arrière poulie basse",
+      "Abduction hanche poulie",
+      "Adduction hanche poulie",
+  
+    
+      "Squat TRX",
+      "Fente TRX",
+      "Pont fessier TRX",
+      "Curl ischio TRX",
+      "Kettlebell swing",
+      "Box jump",
+      "Pistol squat",
+      "Bulgarian squat TRX",
+      "Abduction bande élastique",
+      "Adduction bande élastique",
+      "Extension hanche élastique",
+      "Step-up élastique"
+  ],
+      "Épaules": [
+     
+      "Développé militaire barre",
+      "Développé militaire haltères",
+      "Développé assis haltères",
+      "Développé nuque barre",
+      "Arnold press",
+      "Push press (barre ou haltères)",
+      "Développé unilatéral haltère",
+      "Développé debout haltères",
+  
+  
+      "Élévations latérales haltères",
+      "Élévations frontales haltères",
+      "Élévations latérales un bras",
+      "Élévations frontales alternées",
+      "Élévations latérales penchées",
+      "Élévations latérales assises",
+      "Élévations frontales barre EZ",
+      "Élévations latérales inclinées sur banc",
+  
+      
+      "Oiseau haltères (rear delt fly)",
+      "Oiseau assis haltères",
+      "Oiseau sur banc incliné",
+      "Rowing menton prise large",
+      "Rowing debout prise serrée (upright row)",
+      "Rowing vertical barre EZ",
+      "Face pull avec élastique (version haltères possible)",
+      "Reverse fly haltères",
+  
+  
+      "Développé épaules machine",
+      "Développé épaules Smith machine",
+      "Presse épaules machine convergente",
+      "Élévations latérales machine",
+      "Élévations frontales machine",
+      "Écarté inversé machine (reverse pec deck)",
+      "Rowing vertical machine",
+      "Shrugs machine",
+      "Développé unilatéral machine",
+  
+      
+      "Élévations latérales poulie basse",
+      "Élévations frontales poulie",
+      "Oiseau poulie croisée (crossover inversé)",
+      "Face pull poulie haute",
+      "Rowing menton poulie basse",
+      "Développé épaules poulie",
+      "Élévations diagonales câble croisé",
+      "Élévations latérales poulie un bras",
+  
+  
+      "Pike push-up (pompes en V)",
+      "Pompes en handstand",
+      "Pompes murales épaules",
+      "Pompes TRX inclinées",
+      "Handstand hold contre mur",
+      "Pompes surélevées (accent épaules)",
+  
+      
+      "Face pull TRX",
+      "Élévations latérales élastique",
+      "Élévations frontales élastique",
+      "Oiseau élastique",
+      "Développé épaules élastique",
+      "Shrugs élastique",
+      "Rotation externe élastique",
+      "Rotation interne élastique",
+      "Overhead press élastique"
+  ],
+      "Triceps": [
+      "Développé couché prise serrée",
+      "Développé décliné prise serrée",
+      "Développé assis prise serrée",
+      "Barre front (skull crusher) barre EZ",
+      "Barre front haltères",
+      "Extension nuque haltère un bras",
+      "Extension nuque haltères deux bras",
+      "Extension triceps couché barre EZ",
+      "Extension triceps couché haltères",
+      "Extension triceps debout haltères",
+      "Kickback triceps un bras haltère",
+      "Kickback triceps deux bras haltères",
+      "Kickback haltères sur banc incliné",
+      "Close grip push-up (pompes prise serrée)",
+      "JM press (mélange développé et skullcrusher)",
+      "French press (barre EZ triceps)",
+      "Extension unilatérale haltère assis",
+      "Extension triceps allongé barre droite",
+      "Développé militaire prise serrée (accent triceps)",
+  
+      "Extension triceps machine assis",
+      "Extension triceps machine debout",
+      "Développé triceps machine convergente",
+      "Dips assistés machine",
+      "Press triceps machine Hammer Strength",
+      "Extension triceps machine guidée",
+      "Extension unilatérale triceps machine",
+      "Extension triceps banc incliné machine",
+      "Push-down machine triceps",
+      "Kickback machine spécifique",
+  
+      "Extension triceps poulie haute barre droite",
+      "Extension triceps poulie haute corde",
+      "Extension triceps poulie haute corde inversée",
+      "Extension triceps poulie un bras",
+      "Extension triceps poulie basse (reverse grip)",
+      "Pushdown corde poulie haute",
+      "Pushdown barre EZ poulie haute",
+      "Kickback câble unilatéral",
+      "Extension triceps à la poulie horizontale",
+      "Extension triceps bras croisés",
+      "Extension triceps over rope (au-dessus de la tête)",
+      "Extension triceps diagonale poulie",
+      "Extension triceps unilatérale diagonale poulie",
+      "Extension triceps inversée poulie (prise supination)",
+      "Extension triceps allongé poulie haute",
+      "Extension triceps corde au-dessus de la tête",
+  
+      "Dips parallèles",
+      "Dips banc",
+      "Pompes prise serrée (close grip push-ups)",
+      "Pompes diamant",
+      "Pompes triceps surélevées",
+      "Pompes mains rapprochées",
+      "Pompes TRX triceps",
+      "Pompes anneaux triceps",
+      "Dips lestés",
+      "Dips un bras assistés",
+      "Pompes explosifs triceps",
+      "Pompes murales triceps",
+  
+      "Extension triceps TRX",
+      "Kickback TRX",
+      "Pompes triceps TRX",
+      "Extension triceps élastique deux bras",
+      "Extension triceps élastique un bras",
+      "Extension triceps overhead élastique",
+      "Kickback élastique",
+      "Pushdown élastique",
+      "Pompes élastiques triceps",
+      "Extension triceps bande circulaire",
+      "Extension diagonale élastique",
+      "Extension triceps tempo lent (élastique ou TRX)",
+  
+      "Dips sur barres parallèles lestés",
+      "Dips négatifs",
+      "Extension triceps isométrique",
+      "French press unilatéral",
+      "Extension triceps tempo lent 4-2-4",
+      "Extension triceps drop set",
+      "Extension triceps partielle basse",
+      "Extension triceps partielle haute",
+      "JM press barre EZ",
+      "Extension triceps unilatérale lente"
+  ],
+      "Biceps":[
+      "Curl barre droite",
+      "Curl barre EZ",
+      "Curl haltères alternés",
+      "Curl haltères simultanés",
+      "Curl marteau (hammer curl)",
+      "Curl prise inversée (reverse curl)",
+      "Curl concentré (concentration curl)",
+      "Curl araignée (spider curl)",
+      "Curl assis incliné",
+      "Curl debout classique",
+      "Curl debout unilatéral",
+      "Curl Zottman",
+      "Curl prise supination",
+      "Curl rotation poignet",
+      "Curl sur banc incliné haltères",
+      "Curl unilatéral banc prédicateur",
+      "Curl deux bras banc prédicateur",
+      "Curl biceps debout barre EZ",
+      "Curl barre guidée (Smith machine)",
+      "Curl supination à la barre trap",
+      
+
+      "Curl machine assis",
+      "Curl machine debout",
+      "Curl machine convergente",
+      "Curl unilatéral machine",
+      "Curl banc Larry Scott",
+      "Curl machine preacher (banc incliné)",
+      "Curl Hammer Strength machine",
+      "Curl assisté guidé",
+      "Curl câble machine spécifique biceps",
+  
+
+      "Curl poulie basse deux bras",
+      "Curl poulie basse un bras",
+      "Curl poulie haute corde",
+      "Curl poulie vis-à-vis unilatéral",
+      "Curl poulie croisée",
+      "Curl vis-à-vis double (biceps fly)",
+      "Curl prise supination poulie basse",
+      "Curl à la poulie avec corde",
+      "Curl unilatéral câble assis",
+      "Curl unilatéral câble debout",
+      "Curl biceps poulie inversée",
+
+      "Tractions supination (chin-up)",
+      "Tractions neutres (prise marteau)",
+      "Tractions TRX supination",
+      "Curl TRX (biceps TRX)",
+      "Tractions assistées biceps",
+      "Curl isométrique (maintien bras pliés traction)",
+      "Curl bodyweight sous table (row biceps)",
+      
+ 
+      "Curl bande élastique deux bras",
+      "Curl bande élastique un bras",
+      "Curl marteau élastique",
+      "Curl rotation élastique",
+      "Curl isométrique élastique",
+      "Curl prise inversée élastique",
+      "Curl alterné bande élastique",
+      "Curl supination élastique",
+      "Curl concentration élastique bande",
+      "Curl Zottman élastique",
+      
+ 
+      "Curl à la corde TRX unilatéral",
+      "Curl prise neutre câble corde",
+      "Curl 21 (méthode des 21 répétitions)",
+      "Curl tempo lent (4-2-4)",
+      "Curl drop set",
+      "Curl unilatéral tempo lent",
+      "Curl cheat (légère aide du buste)",
+      "Curl statique maintien haut",
+      "Curl partiel haut",
+      "Curl partiel bas"
+  ],
+      "Abdominaux": [
+    
+      "Crunch au sol",
+      "Crunch sur banc",
+      "Crunch sur ballon suisse",
+      "Crunch inversé",
+      "Crunch jambes levées",
+      "Crunch mains derrière la tête",
+      "Crunch oblique",
+      "Crunch à la poulie haute",
+      "Crunch machine assis",
+      "Crunch à la poulie corde",
+      "Crunch partiel haut",
+      "Crunch tempo lent (4-2-4)",
+      "Crunch avec rotation",
+      "Crunch bicyclette",
+      "Crunch sur Swiss ball bras tendus",
+      "Crunch sur banc décliné",
+      "Crunch lesté disque",
+      "Crunch unilatéral",
+      "Crunch corde poulie genoux",
+  
+  
+      "Relevé de jambes au sol",
+      "Relevé de jambes suspendu",
+      "Relevé de jambes TRX",
+      "Relevé de genoux assis",
+      "Relevé de jambes sur banc incliné",
+      "Relevé de jambes barre fixe",
+      "Relevé de jambes poulie basse",
+      "Relevé de genoux avec torsion",
+      "Relevé de jambes avec haltère entre les pieds",
+      "Relevé de jambes couché au sol",
+      "Relevé de jambes lent contrôle",
+      "Relevé de jambes alterné",
+      "Relevé de jambes lesté",
+      "Relevé de jambes suspendu rotation",
+      "Relevé de genoux TRX",
+  
+  
+      "Gainage frontal",
+      "Gainage latéral",
+      "Gainage sur ballon suisse",
+      "Gainage TRX",
+      "Gainage dynamique (alterné bras/jambes)",
+      "Gainage sur coudes",
+      "Gainage sur mains",
+      "Gainage un bras/un pied",
+      "Gainage planche inversée",
+      "Gainage avec montée de genoux",
+      "Gainage Superman",
+      "Gainage sur Swiss Ball avec roulement",
+      "Gainage planche + rotation hanche",
+      "Gainage latéral avec élévation de hanche",
+      "Gainage latéral bras tendu",
+      "Gainage avec mouvement bras",
+      "Gainage sur roue abdominale (ab wheel rollout)",
+      "Gainage avec ab roller",
+      "Gainage TRX mountain climber",
+      "Gainage coudes + step up",
+  
+     
+      "Russian twist",
+      "Russian twist lesté",
+      "Oblique crunch au sol",
+      "Oblique crunch sur banc incliné",
+      "Oblique TRX",
+      "Rotation buste poulie haute",
+      "Rotation buste poulie basse",
+      "Twist médecine ball",
+      "Side bend haltère (flexion latérale)",
+      "Side bend poulie",
+      "Planche latérale rotation bras",
+      "Rotation buste câble unilatéral",
+      "Rotation assis sur Swiss ball",
+      "Rotation debout avec élastique",
+      "Twist corde poulie haute",
+      "Crunch oblique suspendu",
+      "Side plank dips",
+      "Windshield wipers (essuie-glaces)",
+      "Oblique levée de jambes suspendu rotation",
+  
+   
+      "Ab coaster machine",
+      "Crunch machine abdominals",
+      "Rotation machine obliques",
+      "Crunch poulie genoux",
+      "Relevé de jambes machine",
+      "Incline bench sit-up machine",
+      "Roman chair sit-up",
+      "Banc décliné sit-up lesté",
+      "Crunch avec résistance bande",
+      "Crunch machine verticale",
+      "Oblique twist machine",
+      "Roue abdominale (ab wheel)",
+      "Swiss Ball roll-out",
+      "Cable woodchopper (poulie diagonale)",
+      "Cable high-to-low woodchopper",
+      "Cable low-to-high woodchopper",
+      "Machine rotation assis",
+      "Crunch machine Hammer Strength",
+  
+   
+      "Mountain climbers",
+      "V-ups",
+      "Jackknife sit-up",
+      "Leg raise kick",
+      "Flutter kicks",
+      "Scissor kicks",
+      "Toe touch crunch",
+      "Sit-up complet",
+      "Sit-up lesté disque",
+      "Ab wheel roll-out",
+      "Bear crawl",
+      "Planche avec touche d’épaule",
+      "Dead bug",
+      "Hollow hold",
+      "Hollow rocks",
+      "Bicycle crunch rapide",
+      "Reverse crunch explosif",
+      "L-sit au sol",
+      "L-sit sur barres parallèles",
+      "Dragon flag (Bruce Lee)",
+  
+   
+      "Knee tuck TRX",
+      "Pike TRX",
+      "Plank TRX + mountain climbers",
+      "Ab rollout TRX",
+      "Oblique twist TRX",
+      "Ab crunch élastique",
+      "Crunch rotation élastique",
+      "Gainage avec élastique tirage bras",
+      "Relevé de jambes élastique",
+      "Crunch debout élastique",
+      "Woodchopper élastique",
+      "Russian twist élastique",
+      "Crunch isométrique élastique",
+      "Extension abdos corde élastique",
+  
+  
+      "Circuit abdos 4x30s (haut, bas, obliques, gainage)",
+      "Tabata abdos 8x20s",
+      "AMRAP 10 min abdos",
+      "HIIT abdominaux 20/10",
+      "Combo crunch + relevé jambes",
+      "Combo plank + mountain climber",
+      "Combo V-up + Russian twist",
+      "Superset crunch + ab wheel",
+      "Superset oblique + plank",
+      "Circuit 5 exercices abdos",
+      "Finisher abdos brûlants 5 min"
+  ],
+      "Cardio" : [
+      "Course sur tapis",
+      "Course en extérieur",
+      "Course en côte",
+      "Sprint court (100 m)",
+      "Sprint fractionné (HIIT run)",
+      "Jogging d'endurance",
+      "Fartlek (course à intensité variable)",
+      "Montées d'escaliers",
+      "Course sur piste",
+      "Sprint sur tapis motorisé",
+      "Marche rapide sur tapis",
+      "Course en pente sur tapis",
+      "Course sur plage ou sable",
+      "Course en forêt (trail)",
+      "Course intervalle 30/30",
+  
+      "Vélo elliptique",
+      "Vélo d’appartement",
+      "Vélo de route",
+      "Vélo spinning",
+      "Vélo en côte",
+      "Sprints vélo",
+      "HIIT vélo (20s/10s Tabata)",
+      "Vélo elliptique bras et jambes",
+      "Vélo d’intérieur fractionné",
+      "AirBike (vélo à résistance d’air)",
+  
+      "Rameur",
+      "SkiErg",
+      "Escalator machine (stair master)",
+      "Stepper",
+      "Montée de marches machine",
+      "Assault bike",
+      "Rameur fractionné (interval training)",
+      "Rameur en endurance longue",
+      "Rameur puissance (séries courtes)",
+  
+      "Burpees",
+      "Mountain climbers",
+      "Jumping jacks",
+      "Squat jump",
+      "Fentes sautées",
+      "Pompes explosives",
+      "High knees (montées de genoux)",
+      "Butt kicks (talons-fesses)",
+      "Tuck jumps",
+      "Burpees avec pompes",
+      "Burpees avec saut étoile",
+      "Jump lunges",
+      "Skater jumps (patineur)",
+      "Saut corde à pied joint",
+      "Saut corde alterné",
+      "Saut corde double unders",
+      "Shadow boxing",
+      "Knee push-up cardio",
+      "Pompes + mountain climbers",
+      "Jump squats tempo rapide",
+  
+      "Tabata 20/10",
+      "Circuit 30/30",
+      "AMRAP 10 min (as many rounds as possible)",
+      "EMOM (Every Minute On the Minute)",
+      "Complexe kettlebell cardio",
+      "Circuit poids du corps",
+      "Sprint corde à sauter + burpees",
+      "Circuit fractionné haut/bas du corps",
+      "HIIT 4x4 minutes (méthode norvégienne)",
+      "Entraînement pyramidal cardio",
+      "Cardio boxing circuit",
+      "HIIT full body 15 min",
+      "Circuit cardio au poids du corps (5 exercices enchaînés)",
+  
+      "Corde à sauter",
+      "Shadow boxing",
+      "Boxe sur sac lourd",
+      "Boxe au sac vitesse",
+      "Boxe anglaise fractionnée",
+      "Kickboxing circuit",
+      "Muay Thai shadow",
+      "Corde à sauter double",
+      "Shadow boxing 3 rounds",
+      "Cardio box Tabata",
+  
+      "Mountain climbers TRX",
+      "Burpees TRX",
+      "Squat jump TRX",
+      "Pompes TRX dynamiques",
+      "Row TRX explosif",
+      "Course élastique résistance",
+      "Sprint élastique",
+      "Fente sautée TRX",
+      "Corde à sauter élastique",
+      "Burpees élastiques",
+      "Knee drive élastique",
+      "Course sur place élastique",
+  
+  
+      "Corde ondulatoire (battle rope)",
+      "Poussée de traîneau (sled push)",
+      "Tirage de traîneau (sled pull)",
+      "Course avec parachute",
+      "Montée de colline sprint",
+      "Entraînement escaliers",
+      "Circuit urbain (banc, escalier, trottoir)",
+      "Course intervalle 15/45",
+      "Marche rapide avec charge légère (rucking)",
+      "Saut de boîte (box jump)",
+      "Circuit cardio plage",
+      "Sprint cône en aller-retour",
+      "Course fractionnée avec gilet lesté",
+      "Cardio circuit poids du corps 20 min"
+  ]
+    };
+  
+    function updateExercises() {
+      const type = document.getElementById('type').value;
+      const exerciseSelect = document.getElementById('exercise');
+      exerciseSelect.innerHTML = '<option value="">Choisir un exercice</option>';
+  
+      if (exercisesByType[type]) {
+        exercisesByType[type].forEach(ex => {
+          const opt = document.createElement('option');
+          opt.value = ex;
+          opt.textContent = ex;
+          exerciseSelect.appendChild(opt);
+        });
+      }
+    }
+  </script>
+  
+  
+  <!-- Script JS pour exercices dynamiques -->
+
+  
+  
+    <!-- 📋 Dernières activités -->
+    <section class="bg-neutral-900 rounded-2xl p-6 border border-neutral-800">
+      <div class="flex justify-between items-center cursor-pointer mb-4" onclick="toggleActivities(this)">
+        <h3 class="text-xl font-semibold flex items-center gap-2">
+          <i data-lucide="activity" class="text-red-500"></i> Dernières activités
+        </h3>
+        <button class="toggle-btn text-neutral-400 hover:text-red-400 transition">
+          <i data-lucide="chevron-down"></i>
+        </button>
+      </div>
+    
+      <div class="activities-list mt-3 space-y-3">
+        {% if workouts %}
+          <ul class="space-y-3 text-neutral-300">
+            {% for w in workouts %}
+            <li class="flex justify-between items-center border-b border-neutral-800 pb-2">
+              <div>
+                <span>{{ w.date.strftime('%d/%m/%Y') }} – {{ w.type }}</span>
+                <span class="text-red-500 font-semibold ml-2">{{ w.duration }} min</span>
+              </div>
+              <form action="{{ url_for('delete_workout', id=w.id) }}" method="POST" onsubmit="return confirm('Supprimer cette activité ?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="text-neutral-400 hover:text-red-500 transition">
+                  <i data-lucide="trash-2"></i>
+                </button>
+              </form>
+            </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-neutral-500 italic">Aucun entraînement enregistré pour l’instant.</p>
+        {% endif %}
+      </div>
+    </section>
+    
+  </main>
+  
+  <section class="bg-neutral-900 rounded-2xl p-6 border border-neutral-800 text-center mt-8">
+    <h3 class="text-xl font-semibold mb-2 flex justify-center items-center gap-2">
+      <i data-lucide="flame" class="text-red-500"></i>
+      Total des calories brûlées 🔥
+    </h3>
+  
+    {% if total_calories %}
+      <p class="text-3xl font-bold text-green-400">{{ total_calories }} kcal</p>
+      <p class="text-neutral-400 text-sm mt-2">Estimation basée sur la durée et le poids</p>
+    {% else %}
+      <p class="text-neutral-500 italic">Aucune donnée disponible pour l’instant.</p>
+    {% endif %}
+  </section>
+  
+  
+  <footer class="text-center text-neutral-500 text-sm py-6 border-t border-neutral-800">
+    © {{ datetime.utcnow().year }} FitSafe AI – Tous droits réservés.
+  </footer>
+
+  <!-- ===== DATA CHART SAFE JSON ===== -->
+  <script id="chart-data" type="application/json">
+    {
+      "labels": {{ chart_labels | tojson }},
+      "data": {{ chart_data | tojson }}
+    }
+  </script>
+
+  <!-- ===== SCRIPTS ===== -->
+  <script>
+    lucide.createIcons();
+
+    const chartData = JSON.parse(document.getElementById('chart-data').textContent);
+    const labels = chartData.labels;
+    const data = chartData.data;
+
+    const ctx = document.getElementById('workoutChart').getContext('2d');
+    const workoutChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Durée totale (min)',
+          data: data,
+          backgroundColor: [
+            'rgba(239, 68, 68, 0.8)',
+            'rgba(234, 88, 12, 0.8)',
+            'rgba(59, 130, 246, 0.8)',
+            'rgba(34, 197, 94, 0.8)',
+            'rgba(168, 85, 247, 0.8)'
+          ],
+          borderWidth: 1,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        plugins: { legend: { labels: { color: '#ddd' } } },
+        scales: {
+          x: { ticks: { color: '#aaa' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+          y: { ticks: { color: '#aaa' }, grid: { color: 'rgba(255,255,255,0.1)' }, beginAtZero: true }
+        }
+      }
+    });
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const el = document.querySelector('.text-5xl.font-bold');
+      if (!el) return;
+      const target = parseInt(el.textContent);
+      let current = 0;
+      const interval = setInterval(() => {
+        if (current < target) {
+          current++;
+          el.textContent = current + "%";
+        } else clearInterval(interval);
+      }, 15);
+    });
+  </script>
+  <script>
+    function toggleSession(header) {
+      const session = header.closest('.mb-6'); // chaque bloc de séance
+      const list = session.querySelector('.exercise-list');
+      const icon = header.querySelector('.toggle-btn i');
+  
+      if (!list) return;
+  
+      if (list.style.maxHeight && list.style.maxHeight !== '0px') {
+        // Fermer
+        list.style.maxHeight = '0';
+        list.style.opacity = '0';
+        icon.setAttribute('data-lucide', 'chevron-right');
+      } else {
+        // Ouvrir
+        list.style.maxHeight = list.scrollHeight + 'px';
+        list.style.opacity = '1';
+        icon.setAttribute('data-lucide', 'chevron-down');
+      }
+  
+      lucide.createIcons();
+    }
+  
+    // Par défaut : tout fermé sauf la première séance
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll('.exercise-list').forEach((list, i) => {
+        if (i === 0) {
+          list.style.maxHeight = list.scrollHeight + 'px';
+          list.style.opacity = '1';
+        } else {
+          list.style.maxHeight = '0';
+          list.style.opacity = '0';
+        }
+        list.style.transition = 'max-height 0.4s ease, opacity 0.3s ease';
+        list.style.overflow = 'hidden';
+      });
+    });
+  </script>
+  <script>
+    function toggleActivities(header) {
+      const section = header.closest('section');
+      const list = section.querySelector('.activities-list');
+      const icon = header.querySelector('.toggle-btn i');
+  
+      if (!list) return;
+  
+      if (list.style.maxHeight && list.style.maxHeight !== '0px') {
+        // Fermer
+        list.style.maxHeight = '0';
+        list.style.opacity = '0';
+        icon.setAttribute('data-lucide', 'chevron-right');
+      } else {
+        // Ouvrir
+        list.style.maxHeight = list.scrollHeight + 'px';
+        list.style.opacity = '1';
+        icon.setAttribute('data-lucide', 'chevron-down');
+      }
+  
+      lucide.createIcons();
+    }
+  
+    // Par défaut : section ouverte
+    document.addEventListener("DOMContentLoaded", () => {
+      const list = document.querySelector('.activities-list');
+      if (list) {
+        list.style.maxHeight = list.scrollHeight + 'px';
+        list.style.opacity = '1';
+        list.style.transition = 'max-height 0.4s ease, opacity 0.3s ease';
+        list.style.overflow = 'hidden';
+      }
+    });
+  </script>
+  
+  
+    
+</body>
+</html>

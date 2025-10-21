@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='image/logo2.png') }}">
+    <title>FitSafe AI – Connexion / Inscription</title>
+
+    <!-- Tailwind CSS & Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: #0f0f0f;
+        color: #fff;
+      }
+
+      .fade-in {
+        animation: fadeInUp 0.7s ease forwards;
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      input {
+        background-color: #1a1a1a;
+      }
+
+      input:focus {
+        border-color: #e50914;
+        box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.3);
+      }
+
+      .tab-active {
+        background-color: #e50914;
+        color: white;
+      }
+      .nav-link-glow {
+        font-weight: 700;
+        background: linear-gradient(90deg, #ef4444, #ff006e, #00ffff, #ef4444);
+        background-size: 300%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: glow-shift 3s linear infinite;
+        text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        transition: transform 0.3s ease;
+      }
+    
+      .nav-link-glow:hover {
+        transform: scale(1.15);
+        text-shadow: 0 0 20px rgba(255,255,255,0.6);
+      }
+    
+      @keyframes glow-shift {
+        0% { background-position: 0%; }
+        100% { background-position: 300%; }
+      }
+      /* ---- Effet de survol néon universel pour tous les boutons et liens importants ---- */
+      button,
+      a.bg-red-600,
+      a.bg-neutral-700,
+      a.text-red-500,
+      a.text-neutral-400,
+      .bg-red-600,
+      .bg-neutral-700 {
+        transition: all 0.3s ease-in-out;
+      }
+
+      button:hover,
+      a.bg-red-600:hover,
+      a.bg-neutral-700:hover,
+      a.text-red-500:hover,
+      a.text-neutral-400:hover,
+      .bg-red-600:hover,
+      .bg-neutral-700:hover {
+        transform: scale(1.08);
+        filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.8));
+      }
+
+    
+    </style>
+  </head>
+
+  <body class="flex min-h-screen">
+    <!-- ===== LEFT VISUAL SECTION ===== -->
+    <section
+      class="hidden lg:flex lg:w-1/2 relative bg-cover bg-center"
+      style="
+        background-image: linear-gradient(
+            rgba(15, 15, 15, 0.8),
+            rgba(15, 15, 15, 0.9)
+          ),
+          url('https://images.unsplash.com/photo-1605296867304-46d5465a13f1?auto=format&fit=crop&w=1950&q=80');
+      "
+    >
+      <div
+        class="absolute inset-0 flex flex-col justify-center items-center text-center px-10 fade-in"
+      >
+        <h1 class="text-2xl font-orbitron font-bold text-red-500 tracking-wide">
+          FitSafe <span class="nav-link-glow">AI</span>
+        </h1>
+      
+        <p class="text-lg text-neutral-300 mb-4">
+          Entraîne-toi intelligemment, évite les blessures
+        </p>
+        <p class="text-neutral-400 italic">
+          Rejoins une communauté de sportifs intelligents 💪
+        </p>
+      </div>
+    </section>
+
+    <!-- ===== RIGHT FORM SECTION ===== -->
+    <section
+      class="flex w-full lg:w-1/2 justify-center items-center p-8 lg:p-16"
+    >
+      <div
+        class="bg-neutral-900 w-full max-w-md rounded-2xl shadow-lg p-8 fade-in border border-neutral-800"
+      >
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div
+                class="mb-4 p-3 rounded-lg text-sm 
+                       {% if category == 'success' %}bg-green-600{% elif category == 'error' %}bg-red-600{% else %}bg-neutral-700{% endif %}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <!-- Tabs -->
+        <div class="flex justify-around mb-8 border-b border-neutral-700">
+          <button
+            id="loginTab"
+            class="w-1/2 py-3 font-semibold tab-active rounded-t-lg transition"
+          >
+            🔑 Connexion
+          </button>
+          <button
+            id="registerTab"
+            class="w-1/2 py-3 font-semibold text-neutral-400 hover:text-white transition"
+          >
+            📝 Inscription
+          </button>
+        </div>
+
+        <!-- ===== LOGIN FORM ===== -->
+        <form
+          id="loginForm"
+          method="POST"
+          action="{{ url_for('login') }}"
+          class="space-y-6 fade-in"
+        >
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <!-- Email -->
+          <div>
+            <label for="login_email" class="block text-sm mb-2">Email</label>
+            <input
+              id="login_email"
+              name="email"
+              type="email"
+              required
+              class="w-full rounded-lg border border-neutral-700 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-600 transition"
+            />
+          </div>
+          <!-- Password -->
+          <div>
+            <label for="login_password" class="block text-sm mb-2"
+              >Mot de passe</label
+            >
+            <input
+              id="login_password"
+              name="password"
+              type="password"
+              required
+              class="w-full rounded-lg border border-neutral-700 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-600 transition"
+            />
+          </div>
+          <!-- Forgot password -->
+          
+
+          <!-- Button -->
+          <button
+            type="submit"
+            class="w-full bg-red-600 hover:bg-red-700 font-bold py-2 px-4 rounded-full transition"
+          >
+            Se connecter
+          </button>
+        </form>
+
+        <!-- ===== REGISTER FORM ===== -->
+        <form
+          id="registerForm"
+          method="POST"
+          action="{{ url_for('register') }}"
+          class="space-y-6 hidden fade-in"
+        >
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <!-- Nom -->
+          <div>
+            <label for="name" class="block text-sm mb-2">Nom</label>
+            <input
+              id="name"
+              name="name"
+              type="text"
+              required
+              class="w-full rounded-lg border border-neutral-700 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-600 transition"
+            />
+          </div>
+          <!-- Email -->
+          <div>
+            <label for="register_email" class="block text-sm mb-2">Email</label>
+            <input
+              id="register_email"
+              name="email"
+              type="email"
+              required
+              class="w-full rounded-lg border border-neutral-700 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-600 transition"
+            />
+          </div>
+          <!-- Password -->
+          <div>
+            <label for="register_password" class="block text-sm mb-2"
+              >Mot de passe</label
+            >
+            <input
+              id="register_password"
+              name="password"
+              type="password"
+              required
+              class="w-full rounded-lg border border-neutral-700 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-600 transition"
+            />
+          </div>
+          <!-- Confirm Password -->
+          <div>
+            <label for="confirm_password" class="block text-sm mb-2"
+              >Confirmation du mot de passe</label
+            >
+            <input
+              id="confirm_password"
+              name="confirm_password"
+              type="password"
+              required
+              class="w-full rounded-lg border border-neutral-700 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-600 transition"
+            />
+          </div>
+          <!-- Button -->
+          <button
+            type="submit"
+            class="w-full bg-red-600 hover:bg-red-700 font-bold py-2 px-4 rounded-full transition"
+          >
+            Créer un compte
+          </button>
+        </form>
+
+        <!-- Motivational footer -->
+        <p class="text-center text-neutral-400 text-sm mt-8">
+          Rejoins une communauté de sportifs intelligents 💪
+        </p>
+      </div>
+    </section>
+
+    <!-- ===== SCRIPT ===== -->
+    <script>
+      lucide.createIcons();
+
+      const loginTab = document.getElementById("loginTab");
+      const registerTab = document.getElementById("registerTab");
+      const loginForm = document.getElementById("loginForm");
+      const registerForm = document.getElementById("registerForm");
+
+      loginTab.addEventListener("click", () => {
+        loginForm.classList.remove("hidden");
+        registerForm.classList.add("hidden");
+        loginTab.classList.add("tab-active");
+        registerTab.classList.remove("tab-active");
+        registerTab.classList.add("text-neutral-400");
+      });
+
+      registerTab.addEventListener("click", () => {
+        registerForm.classList.remove("hidden");
+        loginForm.classList.add("hidden");
+        registerTab.classList.add("tab-active");
+        loginTab.classList.remove("tab-active");
+        loginTab.classList.add("text-neutral-400");
+      });
+    </script>
+  </body>
+</html>
+

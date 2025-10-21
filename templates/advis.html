@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FitSafe AI - Conseils & Prévention</title>
+
+  <!-- Fonts & Tailwind -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='image/logo2.png') }}">
+
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: radial-gradient(circle at top, #0a0a0a 0%, #000 100%);
+      color: #fff;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    canvas#bgCanvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    header, main, footer {
+      position: relative;
+      z-index: 2;
+    }
+
+    .article-card {
+      background: rgba(20, 20, 20, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.4s ease;
+    }
+    .article-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.3);
+    }
+
+    .fade-up {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .glow {
+      text-shadow: 0 0 15px rgba(239, 68, 68, 0.8);
+    }
+
+    .sidebar {
+      background: rgba(15, 15, 15, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.1);
+    }
+
+    .filter-label:hover {
+      color: #ef4444;
+      transition: 0.2s;
+    }
+
+    .nav-link-glow {
+      font-weight: 700;
+      background: linear-gradient(90deg, #ef4444, #ff006e, #00ffff, #ef4444);
+      background-size: 300%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: glow-shift 3s linear infinite;
+      text-shadow: 0 0 10px rgba(255,255,255,0.3);
+      transition: transform 0.3s ease;
+    }
+
+    .nav-link-glow:hover {
+      transform: scale(1.15);
+      text-shadow: 0 0 20px rgba(255,255,255,0.6);
+    }
+
+    @keyframes glow-shift {
+      0% { background-position: 0%; }
+      100% { background-position: 300%; }
+    }
+
+    /* Animation douce pour le filtrage */
+    article[data-category] {
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    article[data-category][style*="none"] {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    /* ---- Effet de survol néon universel pour tous les boutons et liens importants ---- */
+    button,
+    a.bg-red-600,
+    a.bg-neutral-700,
+    a.text-red-500,
+    a.text-neutral-400,
+    .bg-red-600,
+    .bg-neutral-700 {
+      transition: all 0.3s ease-in-out;
+    }
+
+    button:hover,
+    a.bg-red-600:hover,
+    a.bg-neutral-700:hover,
+    a.text-red-500:hover,
+    a.text-neutral-400:hover,
+    .bg-red-600:hover,
+    .bg-neutral-700:hover {
+      transform: scale(1.08);
+      filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.8));
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+  <!-- ===== Canvas Background ===== -->
+  <canvas id="bgCanvas"></canvas>
+
+  <!-- ===== NAVBAR ===== -->
+  <header class="fixed top-0 w-full z-50 bg-neutral-900/80 backdrop-blur-md border-b border-neutral-800">
+    <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+      <h1 class="text-2xl font-bold text-red-500 tracking-wide font-[Orbitron]">
+        FitSafe <span class="nav-link-glow">AI</span>
+      </h1>
+      <nav class="hidden md:flex space-x-8 text-sm font-medium">
+        <a href="{{ url_for('home') }}" class="hover:text-red-500 transition">Accueil</a>
+        <a href="{{ url_for('dashboard') }}" class="hover:text-red-500 transition">Tableau de bord</a>
+        <a href="{{ url_for('advis') }}" class="text-red-500 font-semibold">Conseils</a>
+        <a href="{{ url_for('profil') }}" class="hover:text-red-500 transition">Profil</a>
+        <a href="{{ url_for('contact') }}" class="hover:text-red-500 transition">Contact</a>
+        <a href="{{ url_for('ia') }}" class="nav-link-glow">IA</a>
+      </nav>
+      <a href="{{ url_for('logout') }}" class="text-sm text-neutral-400 hover:text-red-500 transition">Se déconnecter</a>
+    </div>
+  </header>
+
+  <!-- ===== MAIN ===== -->
+  <main class="flex-1 pt-28 pb-16 px-6 md:px-12 max-w-7xl mx-auto">
+    <h2 class="text-4xl md:text-5xl font-extrabold text-center mb-12 glow font-[Orbitron]">
+      Conseils & Prévention 🧠
+    </h2>
+
+    <div class="flex flex-col md:flex-row gap-10">
+      <!-- ===== SIDEBAR ===== -->
+      <aside class="sidebar md:w-1/4 rounded-2xl p-6 h-fit sticky top-28 fade-up">
+        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+          <i data-lucide="filter" class="text-red-500"></i> Filtres
+        </h3>
+        <div class="flex flex-col space-y-3 text-sm">
+          <label class="filter-label flex items-center gap-2"><input type="checkbox" class="accent-red-600 rounded" /> Nutrition</label>
+          <label class="filter-label flex items-center gap-2"><input type="checkbox" class="accent-red-600 rounded" /> Sommeil</label>
+          <label class="filter-label flex items-center gap-2"><input type="checkbox" class="accent-red-600 rounded" /> Entraînement</label>
+          <label class="filter-label flex items-center gap-2"><input type="checkbox" class="accent-red-600 rounded" /> Blessures</label>
+          <label class="filter-label flex items-center gap-2"><input type="checkbox" class="accent-red-600 rounded" /> Récupération</label>
+          <label class="filter-label flex items-center gap-2"><input type="checkbox" class="accent-red-600 rounded" /> Mental & Motivation</label>
+        </div>
+      </aside>
+
+      <!-- ===== ARTICLES ===== -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 flex-1">
+
+        {% set articles = [
+          {"img": "https://images.unsplash.com/photo-1605296867304-46d5465a13f1?auto=format&fit=crop&w=800&q=80", "titre": "Les erreurs qui causent le plus de blessures", "texte": "Découvrez les fautes techniques les plus fréquentes et comment les éviter lors de vos entraînements.", "categorie": "Entraînement"},
+          {"img": "image/récupération.png", "titre": "Comment bien récupérer après une séance intense", "texte": "Optimisez vos périodes de repos avec des méthodes éprouvées de récupération active et passive.", "categorie": "Récupération"},
+          {"img": "https://images.unsplash.com/photo-1505678261036-a3fcc5e884ee?auto=format&fit=crop&w=800&q=80", "titre": "L’importance du sommeil dans la performance", "texte": "Un bon sommeil est le meilleur allié du sportif : découvrez comment l’optimiser pour progresser.", "categorie": "Sommeil"},
+          {"img": "image/prevention.png", "titre": "Prévenir les blessures aux épaules", "texte": "Apprenez les bons échauffements et exercices correctifs pour renforcer vos articulations.", "categorie": "Blessures"},
+          {"img": "image/nutrition.png", "titre": "Nutrition sportive : les bases", "texte": "Les bons apports nutritionnels pour maximiser énergie, récupération et performance.", "categorie": "Nutrition"},
+          {"img": "https://images.unsplash.com/photo-1558611848-73f7eb4001a1?auto=format&fit=crop&w=800&q=80", "titre": "Renforcer le mental pour mieux performer", "texte": "La concentration et la discipline sont aussi importantes que la force physique.", "categorie": "Mental & Motivation"}
+        ] %}
+
+        {% for article in articles %}
+        <article class="article-card rounded-2xl overflow-hidden shadow-md transition-transform fade-up" data-category="{{ article.categorie }}">
+          <img src="{% if article.img.startswith('http') %}{{ article.img }}{% else %}{{ url_for('static', filename=article.img) }}{% endif %}" alt="{{ article.titre }}" class="w-full h-48 object-cover">
+          <div class="p-6">
+            <h3 class="font-semibold text-lg mb-2">{{ article.titre }}</h3>
+            <p class="text-neutral-400 text-sm mb-4">{{ article.texte }}</p>
+            <a href="#" class="text-red-500 font-semibold hover:underline">Lire l’article →</a>
+          </div>
+        </article>
+        {% endfor %}
+      </section>
+    </div>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="text-center text-neutral-500 text-sm py-10 border-t border-neutral-800 bg-neutral-950">
+    <p class="mb-2">&copy; 2025 FitSafe AI — Tous droits réservés.</p>
+    <p>
+      <a href="https://instagram.com" target="_blank" class="hover:text-red-500 transition">Instagram</a> |
+      <a href="https://linkedin.com" target="_blank" class="hover:text-red-500 transition">LinkedIn</a> |
+      <a href="https://github.com" target="_blank" class="hover:text-red-500 transition">GitHub</a>
+    </p>
+  </footer>
+
+  <script>
+    lucide.createIcons();
+
+    // === ANIMATION APPARITION ===
+    const fadeElems = document.querySelectorAll('.fade-up');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.2 });
+    fadeElems.forEach(el => observer.observe(el));
+
+    // === CANVAS PARTICULES ===
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 0.3;
+        this.vy = (Math.random() - 0.5) * 0.3;
+        this.radius = Math.random() * 2 + 1;
+      }
+      move() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.7)';
+        ctx.fill();
+      }
+    }
+
+    for (let i = 0; i < 80; i++) particles.push(new Particle());
+
+    function connectParticles() {
+      for (let a = 0; a < particles.length; a++) {
+        for (let b = a + 1; b < particles.length; b++) {
+          const dx = particles[a].x - particles[b].x;
+          const dy = particles[a].y - particles[b].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(239, 68, 68, ${1 - dist / 120})`;
+            ctx.lineWidth = 0.3;
+            ctx.moveTo(particles[a].x, particles[a].y);
+            ctx.lineTo(particles[b].x, particles[b].y);
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => { p.move(); p.draw(); });
+      connectParticles();
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    // === FILTRAGE DES ARTICLES ===
+    const checkboxes = document.querySelectorAll('.sidebar input[type="checkbox"]');
+    const articles = document.querySelectorAll('article[data-category]');
+
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', () => {
+        const activeFilters = Array.from(checkboxes)
+          .filter(c => c.checked)
+          .map(c => c.nextSibling.textContent.trim());
+
+        if (activeFilters.length === 0) {
+          articles.forEach(a => a.style.display = 'block');
+          return;
+        }
+
+        articles.forEach(article => {
+          const cat = article.dataset.category;
+          if (activeFilters.includes(cat)) {
+            article.style.display = 'block';
+          } else {
+            article.style.display = 'none';
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='image/logo2.png') }}">
+  <title>FitSafe AI - Mon Profil</title>
+
+  <!-- Fonts & Tailwind -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at 20% 20%, #111 0%, #0a0a0a 100%);
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    /* --- Boutons Neon --- */
+    .neon-btn {
+      background-color: #ef4444;
+      color: #fff;
+      font-weight: 600;
+      border-radius: 0.5rem;
+      padding: 0.5rem 1.25rem;
+      font-size: 0.9rem;
+      box-shadow: 0 0 8px rgba(239,68,68,0.4);
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .neon-btn:hover {
+      background-color: #ff5f5f;
+      box-shadow: 0 0 15px rgba(239,68,68,0.8);
+      transform: translateY(-1px);
+    }
+
+    /* --- Cartes --- */
+    .card {
+      background: rgba(20,20,20,0.85);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 0 25px rgba(239,68,68,0.15);
+    }
+
+    /* --- Barre de progression --- */
+    .progress-bar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 0%;
+      height: 3px;
+      background: linear-gradient(90deg, #ef4444, #ff6b6b);
+      box-shadow: 0 0 10px rgba(239,68,68,0.8);
+      z-index: 50;
+      animation: loadBar 2s ease-out forwards;
+    }
+    @keyframes loadBar {
+      from { width: 0%; }
+      to { width: 100%; }
+    }
+
+    .nav-link-glow {
+      font-weight: 700;
+      background: linear-gradient(90deg, #ef4444, #ff006e, #00ffff, #ef4444);
+      background-size: 300%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: glow-shift 3s linear infinite;
+      text-shadow: 0 0 10px rgba(255,255,255,0.3);
+      transition: transform 0.3s ease;
+    }
+  
+    .nav-link-glow:hover {
+      transform: scale(1.15);
+      text-shadow: 0 0 20px rgba(255,255,255,0.6);
+    }
+  
+    @keyframes glow-shift {
+      0% { background-position: 0%; }
+      100% { background-position: 300%; }
+    }
+    /* ---- Effet de survol néon universel pour tous les boutons et liens importants ---- */
+    button,
+    a.bg-red-600,
+    a.bg-neutral-700,
+    a.text-red-500,
+    a.text-neutral-400,
+    .bg-red-600,
+    .bg-neutral-700 {
+      transition: all 0.3s ease-in-out;
+    }
+
+    button:hover,
+    a.bg-red-600:hover,
+    a.bg-neutral-700:hover,
+    a.text-red-500:hover,
+    a.text-neutral-400:hover,
+    .bg-red-600:hover,
+    .bg-neutral-700:hover {
+      transform: scale(1.08);
+      filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.8));
+    }
+
+  </style>
+</head>
+
+<body class="relative">
+  <div class="progress-bar"></div>
+
+  <!-- ===== NAVBAR ===== -->
+  <header class="fixed top-0 w-full z-40 bg-neutral-900/80 backdrop-blur-md border-b border-neutral-800">
+    <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+      <h1 class="text-2xl font-bold text-red-500 font-orbitron">FitSafe <span class="nav-link-glow">IA</span></h1>
+      <nav class="hidden md:flex space-x-8 text-sm font-medium">
+        <a href="{{ url_for('home') }}" class="hover:text-red-500 transition">Accueil</a>
+        <a href="{{ url_for('dashboard') }}" class="hover:text-red-500 transition">Tableau de bord</a>
+        <a href="{{ url_for('advis') }}" class="hover:text-red-500 transition">Conseils</a>
+        <a href="{{ url_for('profil') }}" class="text-red-500 font-semibold">Profil</a>
+        <a href="{{ url_for('contact') }}" class="hover:text-red-500 transition">Contact</a>
+        <a href="{{ url_for('ia') }}" class="nav-link-glow">IA</a>
+      </nav>
+      <a href="{{ url_for('logout') }}" class="text-sm text-neutral-400 hover:text-red-500 transition">Se déconnecter</a>
+    </div>
+  </header>
+
+  <!-- ===== FLASH MESSAGES ===== -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div id="flash-container" class="fixed top-4 right-4 space-y-3 z-50">
+        {% for category, message in messages %}
+          <div class="flash-message flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border text-sm
+                      {% if category == 'error' %}bg-red-800/90 border-red-600 text-red-100
+                      {% elif category == 'success' %}bg-green-800/90 border-green-600 text-green-100
+                      {% elif category == 'warning' %}bg-yellow-700/90 border-yellow-500 text-yellow-100
+                      {% else %}bg-neutral-800/90 border-neutral-600 text-neutral-200{% endif %}">
+            <i data-lucide="{% if category == 'error' %}x-circle{% elif category == 'success' %}check-circle{% elif category == 'warning' %}alert-triangle{% else %}info{% endif %}" class="w-5 h-5"></i>
+            <span>{{ message }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- ===== MAIN ===== -->
+  <main class="pt-28 pb-16 px-6 md:px-12 max-w-5xl mx-auto space-y-12">
+
+    <!-- Profil -->
+    <section class="flex flex-col items-center text-center space-y-4">
+      <div class="w-32 h-32 rounded-full border-4 border-red-500 overflow-hidden shadow-lg">
+        <img src="{{ url_for('static', filename='images/avatar_default.png') }}" alt="Avatar" class="w-full h-full object-cover">
+      </div>
+      <h2 class="text-3xl font-bold font-orbitron tracking-wide">Mon profil 🧬</h2>
+      <p class="text-neutral-400">{{ current_user.nom }} — {{ current_user.email }}</p>
+    </section>
+
+    <!-- Statistiques -->
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+      {% set stats = [
+        ('Total séances', total_sessions or 0, 'activity'),
+        ('Durée moyenne', (avg_duration or 0)|string + ' min', 'timer'),
+        ('Score de forme', (risk_score or 0)|string + '%', 'heart')
+      ] %}
+      {% for label, value, icon in stats %}
+        <div class="card flex flex-col items-center space-y-2">
+          <i data-lucide="{{ icon }}" class="w-6 h-6 text-red-500"></i>
+          <p class="text-neutral-400 text-sm">{{ label }}</p>
+          <h3 class="text-2xl font-bold text-red-500">{{ value }}</h3>
+        </div>
+      {% endfor %}
+    </section>
+
+    <!-- Informations personnelles -->
+    <section class="card space-y-6">
+      <h3 class="text-xl font-semibold flex items-center gap-2">
+        <i data-lucide="user"></i> Informations personnelles
+      </h3>
+
+      <form action="{{ url_for('update_profile') }}" method="POST" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div>
+          <label class="block text-sm text-neutral-400 mb-1">Nom complet</label>
+          <input type="text" name="nom" value="{{ current_user.nom }}" class="w-full bg-neutral-800 rounded-lg p-2 border border-neutral-700 focus:border-red-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-sm text-neutral-400 mb-1">Email</label>
+          <input type="email" value="{{ current_user.email }}" disabled class="w-full bg-neutral-800 rounded-lg p-2 border border-neutral-700 text-neutral-500 cursor-not-allowed">
+        </div>
+        <div>
+          <label class="block text-sm text-neutral-400 mb-1">Âge</label>
+          <input type="number" name="age" value="{{ current_user.age or '' }}" class="w-full bg-neutral-800 rounded-lg p-2 border border-neutral-700 focus:border-red-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-sm text-neutral-400 mb-1">Taille (cm)</label>
+          <input type="number" name="taille" value="{{ current_user.taille or '' }}" class="w-full bg-neutral-800 rounded-lg p-2 border border-neutral-700 focus:border-red-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-sm text-neutral-400 mb-1">Poids (kg)</label>
+          <input type="number" name="poids" value="{{ current_user.poids or '' }}" class="w-full bg-neutral-800 rounded-lg p-2 border border-neutral-700 focus:border-red-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-sm text-neutral-400 mb-1">Niveau d’activité</label>
+          <select name="niveau" class="w-full bg-neutral-800 rounded-lg p-2 border border-neutral-700 focus:border-red-500 outline-none">
+            <option value="Sédentaire" {% if current_user.niveau == 'Sédentaire' %}selected{% endif %}>Sédentaire</option>
+            <option value="Modéré" {% if current_user.niveau == 'Modéré' %}selected{% endif %}>Modéré</option>
+            <option value="Intense" {% if current_user.niveau == 'Intense' %}selected{% endif %}>Intense</option>
+          </select>
+        </div>
+
+        <div class="sm:col-span-2 flex justify-end">
+          <button type="submit" class="neon-btn">
+            <i data-lucide="save"></i> Sauvegarder
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Changer le mot de passe -->
+    <section class="card space-y-6">
+      <h3 class="text-xl font-semibold flex items-center gap-2">
+        <i data-lucide="lock"></i> Sécurité du compte
+      </h3>
+
+      <form action="{{ url_for('change_password') }}" method="POST" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="password" name="old_password" placeholder="Ancien mot de passe" class="bg-neutral-800 border border-neutral-700 rounded-lg p-2 focus:border-red-500 outline-none">
+        <input type="password" name="new_password" placeholder="Nouveau mot de passe" class="bg-neutral-800 border border-neutral-700 rounded-lg p-2 focus:border-red-500 outline-none">
+        <input type="password" name="confirm_password" placeholder="Confirmer" class="bg-neutral-800 border border-neutral-700 rounded-lg p-2 focus:border-red-500 outline-none">
+        <div class="sm:col-span-3 flex justify-end">
+          <button type="submit" class="neon-btn">
+            <i data-lucide="lock"></i> Modifier
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Activités -->
+    <section class="card space-y-4">
+      <h3 class="text-xl font-semibold flex items-center gap-2">
+        <i data-lucide="activity"></i> Dernières activités
+      </h3>
+
+      {% if workouts %}
+        <ul class="divide-y divide-neutral-800">
+          {% for w in workouts[:5] %}
+            <li class="py-3 flex justify-between items-center">
+              <div>
+                <p class="font-medium">{{ w.type }}</p>
+                <p class="text-sm text-neutral-400">{{ w.date.strftime('%d/%m/%Y') }} — {{ w.duration }} min</p>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+        <div class="text-center mt-4">
+          <a href="{{ url_for('dashboard') }}" class="neon-btn"><i data-lucide="arrow-right"></i> Voir plus</a>
+        </div>
+      {% else %}
+        <p class="text-neutral-500 italic">Aucune activité récente.</p>
+      {% endif %}
+    </section>
+  </main>
+
+  <footer class="text-center text-neutral-500 text-sm py-6 border-t border-neutral-800">
+    © 2025 FitSafe AI — Tous droits réservés |
+    <a href="https://instagram.com" target="_blank" class="text-red-500 hover:text-red-400">Instagram</a> |
+    <a href="https://linkedin.com" target="_blank" class="text-red-500 hover:text-red-400">LinkedIn</a>
+  </footer>
+
+  <script>
+    lucide.createIcons();
+    // Disparition douce des flashs après 10s
+    setTimeout(() => {
+      document.querySelectorAll('.flash-message').forEach(el => {
+        el.style.transition = 'opacity 0.6s, transform 0.6s';
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(-10px)';
+        setTimeout(() => el.remove(), 600);
+      });
+    }, 10000);
+  </script>
+</body>
+</html>
