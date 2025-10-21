@@ -494,7 +494,7 @@ def add_session():
 @app.route("/delete_session/<int:id>", methods=["POST"])
 def delete_session(id):
     session = Session.query.get_or_404(id)
-    if session.id != current_user.id:
+    if session.user_id != current_user.id:
         flash("Action non autorisée.", "error")
         return redirect(url_for("dashboard"))
     bd.session.delete(session)

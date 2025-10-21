@@ -221,39 +221,39 @@
 
     
     <!-- 📋 Séances et exercices -->
+    <!-- 📋 Séances et exercices -->
 <section class="bg-neutral-900 rounded-2xl p-6 border border-neutral-800">
-    <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
-      <i data-lucide="activity" class="text-red-500"></i> Suivi de tes séances
-    </h3>
-  
-    {% if sessions %}
-      {% for s in sessions %}
-        <div class="mb-6 bg-neutral-800 rounded-xl p-5 shadow-inner">
-          <div class="flex justify-between items-center cursor-pointer" onclick="toggleSession(this)">
-            <h4 class="text-lg font-semibold text-red-400 flex items-center gap-2">
-              <i data-lucide="calendar"></i> {{ s.name }}
-            </h4>
-            <button class="toggle-btn text-neutral-400 hover:text-red-400 transition">
-              <i data-lucide="chevron-down"></i>
-            </button>
-          </div>
-          
-          <!-- 🗑️ Bouton suppression de la séance -->
-          <form action="{{ url_for('delete_session', id=s.id) }}" method="POST" class="inline-block mb-3"
-          onsubmit="return confirm('Supprimer cette séance et tous ses exercices ?');">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit"
-                  class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1 rounded-lg transition">
-              Supprimer la séance 🗑️
-              </button>
-          </form>
+  <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
+    <i data-lucide="activity" class="text-red-500"></i> Suivi de tes séances
+  </h3>
 
-  
-          {% set workouts_for_session = workouts | selectattr("session_id", "equalto", s.id) | list %}
-          <div class="exercise-list mt-4 space-y-3">
-            {% if workouts_for_session %}
-              <ul class="space-y-3">
-                {% for w in workouts_for_session %}
+  {% if sessions %}
+    {% for s in sessions %}
+      <div class="mb-6 bg-neutral-800 rounded-xl p-5 shadow-inner">
+        <div class="flex justify-between items-center cursor-pointer" onclick="toggleSession(this)">
+          <h4 class="text-lg font-semibold text-red-400 flex items-center gap-2">
+            <i data-lucide="calendar"></i> {{ s.name }}
+          </h4>
+          <button class="toggle-btn text-neutral-400 hover:text-red-400 transition">
+            <i data-lucide="chevron-down"></i>
+          </button>
+        </div>
+
+        <!-- 🗑️ Bouton suppression de la séance -->
+        <form action="{{ url_for('delete_session', id=s.id) }}" method="POST" class="inline-block mb-3"
+              onsubmit="return confirm('Supprimer cette séance et tous ses exercices ?');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit"
+                  class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1 rounded-lg transition">
+            Supprimer la séance 🗑️
+          </button>
+        </form>
+
+        {% set workouts_for_session = workouts | selectattr("session_id", "equalto", s.id) | list %}
+        <div class="exercise-list mt-4 space-y-3">
+          {% if workouts_for_session %}
+            <ul class="space-y-3">
+              {% for w in workouts_for_session %}
                 <li class="flex justify-between items-center border-b border-neutral-700 pb-2 text-neutral-300">
                   <div>
                     <span class="font-medium">{{ w.exercise }}</span>
@@ -261,31 +261,32 @@
                       — {{ w.series }} séries x {{ w.reps }} reps ({{ w.duration }} min)
                     </span>
                   </div>
-                
+
                   <div class="text-green-400 text-sm font-semibold">
                     🔥 {{ calories_par_exercice[w.id] }} kcal
                   </div>
-                
-                    <form action="{{ url_for('delete_workout', id=w.id) }}" method="POST"
-                          onsubmit="return confirm('Supprimer cet exercice ?');">
-                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                      <button type="submit" class="text-neutral-400 hover:text-red-500 transition">
-                        <i data-lucide="trash-2"></i>
-                      </button>
-                    </form>
-                  </li>
-                {% endfor %}
-              </ul>
-            {% else %}
-              <p class="text-neutral-500 italic">Aucun exercice ajouté pour cette séance.</p>
-            {% endif %}
-          </div>
-        {% endfor %}
-      {% else %}
-        <p class="text-neutral-500 italic">Aucune séance enregistrée pour l’instant.</p>
-      {% endif %}
-  </div>
-  </section>
+
+                  <form action="{{ url_for('delete_workout', id=w.id) }}" method="POST"
+                        onsubmit="return confirm('Supprimer cet exercice ?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="text-neutral-400 hover:text-red-500 transition">
+                      <i data-lucide="trash-2"></i>
+                    </button>
+                  </form>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-neutral-500 italic">Aucun exercice ajouté pour cette séance.</p>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="text-neutral-500 italic">Aucune séance enregistrée pour l’instant.</p>
+  {% endif %}
+</section>
+
   <!-- 🏋️ Ajouter un exercice -->
 <section class="bg-neutral-900 rounded-2xl p-6 border border-neutral-800">
     <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">

@@ -1,4 +1,3 @@
-# ai/model_fitSafe.py
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
@@ -6,63 +5,109 @@ from datetime import datetime, timedelta
 
 class FitSafeAIModel:
     """
-    Moteur d'analyse FitSafe AI :
-    - Analyse les entraînements de l'utilisateur
-    - Calcule un score de risque
-    - Fournit des recommandations dynamiques
+    Moteur d'analyse FitSafe AI (version scientifique)
+    - Calcule la charge d'entraînement via RPE × durée
+    - Pondère selon le groupe musculaire
+    - Ajuste selon le niveau utilisateur et la météo
+    - Retourne un score de risque (0–100)
     """
 
     def __init__(self, user_data, workouts, weather_data=None):
-        self.user_data = user_data
+        self.user_data = user_data or {}
         self.workouts = pd.DataFrame(workouts) if workouts else pd.DataFrame()
-        self.weather_data = weather_data
+        self.weather_data = weather_data or {}
 
     def compute_risk_score(self):
-        """Évalue la fatigue potentielle et le risque de blessure"""
+        """Calcule le score de risque basé sur la charge physiologique"""
         if self.workouts.empty:
             return 0
 
-        self.workouts["date"] = pd.to_datetime(self.workouts["date"])
+        # Nettoyage des dates
+        self.workouts["date"] = pd.to_datetime(self.workouts["date"], errors="coerce")
+
+        # Table RPE et pondération musculaire
+        rpe_map = {
+            "Jambes": (8.0, 1.3),
+            "Dos": (7.5, 1.2),
+            "Pectoraux": (7.0, 1.1),
+            "Épaules": (7.0, 1.0),
+            "Biceps": (6.5, 0.9),
+            "Triceps": (6.5, 0.9),
+            "Avant_Bras": (5.5, 0.7),
+            "Abdominaux": (6.0, 0.8),
+            "Cardio": (7.5, 1.1),
+        }
+
+        # Calcul de la charge par exercice
+        total_load = 0
+        for _, w in self.workouts.iterrows():
+            exo_type = w.get("type", "Full Body")
+            duration = float(w.get("duration", 0))
+
+            if exo_type in rpe_map:
+                rpe, factor = rpe_map[exo_type]
+            else:
+                rpe, factor = (6.5, 1.0)  # valeur neutre par défaut
+
+            load = duration * rpe * factor
+            total_load += load
+
+        # Moyenne journalière sur 7 jours récents
         recent = self.workouts[
             self.workouts["date"] > datetime.now() - timedelta(days=7)
         ]
-        avg_duration = self.workouts["duration"].mean()
-        freq = len(recent)
-        intensity = avg_duration * (freq + 1)
+        if not recent.empty:
+            recent_load = recent["duration"].sum() * 7  # volume semaine
+        else:
+            recent_load = total_load
 
-        # Ajustement selon météo
-        weather_factor = (
-            1.1 if self.weather_data and self.weather_data.get("temp", 20) > 30 else 1.0
-        )
-        fatigue_factor = np.clip(
-            intensity / (self.user_data.get("niveau", 2) * 100), 0, 1
-        )
+        # Capacité max estimée selon le niveau utilisateur
+        niveau = self.user_data.get("niveau", 2)
+        base_capacity = {1: 400, 2: 700, 3: 1000}[niveau]
 
-        risk_score = round(fatigue_factor * 100 * weather_factor, 2)
-        return min(risk_score, 100)
+        # Calcul brut du risque
+        raw_risk = total_load / base_capacity
+
+        # Lissage via fonction sigmoïde (évite les pics)
+        risk_score = 100 / (1 + np.exp(-3 * (raw_risk - 1)))
+
+        # Ajustement météo
+        temp = self.weather_data.get("temp", 20)
+        if temp > 30:
+            risk_score *= 1.1  # chaleur
+        elif temp < 5:
+            risk_score *= 1.05  # froid
+
+        # Clip entre 0 et 100
+        return round(np.clip(risk_score, 0, 100), 1)
 
     def suggest_program(self):
-        """Propose un programme équilibré selon les séances récentes"""
+        """Propose un ajustement d'entraînement équilibré"""
         if self.workouts.empty:
-            return "Commence avec un programme complet : Full Body x3 par semaine 💪"
+            return "Commence avec un programme Full Body 3x/semaine pour établir une base 💪"
 
-        types = self.workouts["type"].value_counts()
-        most_done = types.index[0]
-        suggestions = {
-            "Pectoraux / Triceps": "Ajoute une séance 'Dos / Biceps' pour équilibrer ton haut du corps.",
-            "Dos / Biceps": "Travaille tes jambes pour un meilleur équilibre musculaire.",
-            "Jambes": "Ajoute du gainage et de la mobilité pour éviter les blessures.",
-            "Full Body": "Passe sur un split Push / Pull / Legs pour progresser plus vite.",
-        }
-        return suggestions.get(most_done, "Continue ton rythme, tu progresses bien 🔥")
+        counts = self.workouts["type"].value_counts()
+        top = counts.index[0]
+
+        if top in ["Pectoraux", "Triceps"]:
+            return "Travaille ton dos ou tes jambes pour équilibrer le haut du corps."
+        elif top in ["Dos", "Biceps"]:
+            return "Ajoute une séance jambes pour renforcer ta base."
+        elif top == "Jambes":
+            return "Pense à intégrer gainage et mobilité pour prévenir les blessures."
+        elif top == "Cardio":
+            return "Varie avec du renforcement musculaire pour la stabilité."
+        return "Programme équilibré 👍 continue comme ça !"
 
     def predict_next_focus(self):
-        """Prévoit la zone musculaire à prioriser"""
+        """Prévoit le prochain groupe musculaire à cibler"""
         if self.workouts.empty:
-            return "🦵 Commence par une base 'Full Body' légère."
-        recent_types = self.workouts["type"].tail(5).tolist()
-        if recent_types.count("Jambes") < 2:
-            return "🦵 Focus jambes cette semaine pour équilibrer ton programme."
-        elif recent_types.count("Pectoraux / Triceps") > 2:
-            return "💪 Allège le haut du corps et travaille ton dos."
-        return "🔥 Continue ton cycle actuel, tu es bien équilibré."
+            return "💪 Commence avec un Full Body pour évaluer ton niveau."
+        last_types = self.workouts["type"].tail(5).tolist()
+        if last_types.count("Jambes") < 2:
+            return (
+                "🦵 Travaille les jambes cette semaine pour équilibrer ton programme."
+            )
+        if last_types.count("Pectoraux") > 2:
+            return "💪 Diminue le haut du corps et renforce le dos."
+        return "🔥 Continue ton rythme, ton équilibre est bon."
