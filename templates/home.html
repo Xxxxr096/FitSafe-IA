@@ -460,7 +460,7 @@
   <!-- ===== SECTION 4 - Le choix Humain ===== -->
   <section class="py-24 bg-gradient-to-b from-neutral-950 to-neutral-900 text-center fade-up">
     <h3 class="text-3xl font-orbitron font-bold mb-6 glow">
-      Besoin d’une touche <span class="nav-link-glow">humaine</span> ? 🤝
+      Besoin d’une touche <span class="nav-link-glow">humaine</span> ? 
     </h3>
     <p class="text-neutral-400 max-w-2xl mx-auto mb-10 leading-relaxed">
       Même si FitSafe IA est ton coach numérique le plus avancé, nous savons que parfois,
@@ -632,6 +632,13 @@
       });
     });
     </script>
+    <script>
+      window.addEventListener("load", () => {
+        const bar = document.querySelector(".progress-bar");
+        setTimeout(() => bar.style.display = "none", 4000);
+      });
+    </script>
+    
 
 </body>
 </html>
