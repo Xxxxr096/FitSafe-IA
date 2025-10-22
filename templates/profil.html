@@ -127,9 +127,18 @@
         <a href="{{ url_for('profil') }}" class="text-red-500 font-semibold">Profil</a>
         <a href="{{ url_for('contact') }}" class="hover:text-red-500 transition">Contact</a>
         <a href="{{ url_for('ia') }}" class="nav-link-glow">IA</a>
+        <a href="{{ url_for('humain') }}" class="nav-link-glow hover:text-red-400 transition">
+          Humain
+        </a>
+        {% if current_user.is_admin %}
+          <a href="{{ url_for('admin_dashboard') }}" class="nav-link-glow hover:text-red-400 transition">
+            🛠 Admin
+          </a>
+        {% endif %}
       </nav>
       <a href="{{ url_for('logout') }}" class="text-sm text-neutral-400 hover:text-red-500 transition">Se déconnecter</a>
     </div>
+
   </header>
 
   <!-- ===== FLASH MESSAGES ===== -->

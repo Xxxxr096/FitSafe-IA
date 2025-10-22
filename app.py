@@ -1,13 +1,4 @@
-from flask import (
-    Flask,
-    render_template,
-    request,
-    url_for,
-    flash,
-    redirect,
-    abort,
-    make_response,
-)
+from flask import Flask, render_template, request, url_for, flash, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import (
     UserMixin,
@@ -17,7 +8,7 @@ from flask_login import (
     login_required,
     current_user,
 )
-import requests
+
 from flask_bcrypt import Bcrypt
 import smtplib
 from email.mime.text import MIMEText
@@ -25,10 +16,6 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from itsdangerous import URLSafeTimedSerializer
-from werkzeug.utils import secure_filename
-import re
-import logging
-from logging.handlers import RotatingFileHandler
 from flask_wtf import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -101,6 +88,10 @@ class User(bd.Model, UserMixin):
     latitude = bd.Column(bd.Float, nullable=True)
     longitude = bd.Column(bd.Float, nullable=True)
 
+    is_admin = bd.Column(bd.Boolean, default=False)
+    is_banned = bd.Column(bd.Boolean, default=False)
+    date_created = bd.Column(bd.DateTime, default=datetime.utcnow)
+
 
 class Session(bd.Model):
     id = bd.Column(bd.Integer, primary_key=True)
@@ -125,6 +116,19 @@ class Workout(bd.Model):
     date = bd.Column(bd.Date, nullable=False, default=datetime.utcnow)
 
 
+# --- Demandes de programmes personnalisés ---
+class ProgramRequest(bd.Model):
+    id = bd.Column(bd.Integer, primary_key=True)
+    user_id = bd.Column(bd.Integer, bd.ForeignKey("user.id"), nullable=False)
+    objectif = bd.Column(bd.Text, nullable=False)
+    status = bd.Column(bd.String(50), default="En attente")
+    response_link = bd.Column(bd.String(255), nullable=True)
+    response_date = bd.Column(bd.DateTime, nullable=True)
+    created_at = bd.Column(bd.DateTime, default=datetime.utcnow)
+
+    user = bd.relationship("User", backref="requests", lazy=True)
+
+
 def generate_confirmation_token(email):
     s = URLSafeTimedSerializer(app.config["SECRET_KEY"])
     return s.dumps(email, salt="confirm-email")
@@ -138,6 +142,147 @@ def home():
 @app.route("/ia")
 def ia():
     return render_template("ia.html")
+
+
+from flask import abort
+
+
+def admin_required(func):
+    from functools import wraps
+
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_admin:
+            abort(403)
+        return func(*args, **kwargs)
+
+    return decorated_view
+
+
+@app.route("/admin_dashboard")
+@login_required
+@admin_required
+def admin_dashboard():
+    users = User.query.all()
+    demandes = ProgramRequest.query.order_by(ProgramRequest.created_at.desc()).all()
+    return render_template("admin_dashboard.html", users=users, demandes=demandes)
+
+
+@app.route("/admin/ban_user/<int:user_id>")
+@login_required
+@admin_required
+def ban_user(user_id):
+    user = User.query.get_or_404(user_id)
+    user.is_banned = True
+    bd.session.commit()
+    flash(f"L'utilisateur {user.nom} a été banni 🚫", "warning")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/unban_user/<int:user_id>")
+@login_required
+@admin_required
+def unban_user(user_id):
+    user = User.query.get_or_404(user_id)
+    user.is_banned = False
+    bd.session.commit()
+    flash(f"L'utilisateur {user.nom} a été réactivé ✅", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/delete_user/<int:user_id>", methods=["POST"])
+@login_required
+@admin_required
+def delete_user(user_id):
+    user = User.query.get_or_404(user_id)
+    bd.session.delete(user)
+    bd.session.commit()
+    flash(f"L'utilisateur {user.nom} a été supprimé 🗑️", "danger")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/validate_request/<int:request_id>", methods=["POST"])
+@login_required
+@admin_required
+def validate_request(request_id):
+    program_link = request.form.get("program_link")
+    demande = ProgramRequest.query.get_or_404(request_id)
+    demande.status = "Validé"
+    demande.response_link = program_link
+    demande.response_date = datetime.utcnow()
+    bd.session.commit()
+    flash("Programme envoyé avec succès ✅", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/user/<int:user_id>")
+@login_required
+@admin_required
+def admin_user_detail(user_id):
+    user = User.query.get_or_404(user_id)
+    sessions = Session.query.filter_by(user_id=user.id).all()
+    workouts = Workout.query.filter_by(user_id=user.id).all()
+
+    # ⚙️ Filtrer les workouts valides (durée non nulle)
+    valid_workouts = [w for w in workouts if w.duration and w.duration > 0]
+
+    # --- Calcul des calories
+    total_calories = 0
+    for w in valid_workouts:
+        try:
+            total_calories += calories_brulees(w.type, w.duration, user.poids or 70)
+        except Exception:
+            pass
+
+    # --- IA et fitness
+    user_data = {
+        "age": user.age or 25,
+        "poids": user.poids or 70,
+        "taille": user.taille or 175,
+        "niveau": {"Débutant": 1, "Intermédiaire": 2, "Avancé": 3}.get(user.niveau, 2),
+    }
+
+    try:
+        weather = get_weather("Paris")
+    except Exception:
+        weather = None
+
+    ai_model = FitSafeAIModel(user_data, [w.__dict__ for w in valid_workouts], weather)
+    risk_score = ai_model.compute_risk_score()
+    fitness_score = calculate_fitness_score(user, valid_workouts, risk_score)
+
+    return render_template(
+        "admin_user_detail.html",
+        user=user,
+        sessions=sessions,
+        workouts=valid_workouts,
+        total_calories=round(total_calories, 2),
+        fitness_score=fitness_score,
+        risk_score=risk_score,
+    )
+
+
+@app.route("/humain", methods=["GET", "POST"])
+@login_required
+def humain():
+    if request.method == "POST":
+        objectif = request.form.get("objectif")
+        if not objectif or objectif.strip() == "":
+            flash("Merci de préciser ton objectif.", "error")
+            return redirect(url_for("humain"))
+
+        demande = ProgramRequest(user_id=current_user.id, objectif=objectif)
+        bd.session.add(demande)
+        bd.session.commit()
+        flash("Ta demande a été envoyée avec succès 💪", "success")
+        return redirect(url_for("humain"))
+
+    demandes = (
+        ProgramRequest.query.filter_by(user_id=current_user.id)
+        .order_by(ProgramRequest.created_at.desc())
+        .all()
+    )
+    return render_template("humain.html", demandes=demandes)
 
 
 # route conseils
@@ -661,6 +806,30 @@ def update_location():
         return {"status": "success"}, 200
     else:
         return {"status": "error", "message": "Coordonnées manquantes"}, 400
+
+
+@app.route("/humain/delete_request/<int:request_id>", methods=["POST"])
+@login_required
+def delete_request(request_id):
+    demande = ProgramRequest.query.get_or_404(request_id)
+
+    # Sécurité : l'utilisateur ne peut supprimer que ses propres demandes
+    if demande.user_id != current_user.id:
+        flash("Action non autorisée.", "error")
+        return redirect(url_for("humain"))
+
+    bd.session.delete(demande)
+    bd.session.commit()
+    flash("Ta demande a bien été supprimée 🗑️", "success")
+    return redirect(url_for("humain"))
+
+
+# ---- CSRF pour tous les templates ----
+@app.context_processor
+def inject_csrf_token():
+    from flask_wtf.csrf import generate_csrf
+
+    return dict(csrf_token=generate_csrf)
 
 
 if __name__ == "__main__":

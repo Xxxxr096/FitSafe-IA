@@ -141,8 +141,29 @@
         <a href="{{ url_for('profil') }}" class="hover:text-red-500 transition">Profil</a>
         <a href="{{ url_for('contact') }}" class="hover:text-red-500 transition">Contact</a>
         <a href="{{ url_for('ia') }}" class="nav-link-glow">IA</a>
+        <a href="{{ url_for('humain') }}" class="nav-link-glow hover:text-red-400 transition">
+          Humain
+        </a>
+        {% if current_user.is_admin %}
+          <a href="{{ url_for('admin_dashboard') }}" class="nav-link-glow hover:text-red-400 transition">
+            🛠 Admin
+          </a>
+        {% endif %}
       </nav>
-      <a href="{{ url_for('logout') }}" class="text-sm text-neutral-400 hover:text-red-500 transition">Se déconnecter</a>
+      {% if current_user.is_authenticated %}
+          <div class="flex items-center gap-4">
+            <!-- Icône Notifications -->
+            <button id="notif-btn" class="relative text-neutral-400 hover:text-red-500 transition" title="Notifications">
+              <i data-lucide="bell"></i>
+              <!-- Badge de notifications (caché par défaut) -->
+              <span id="notif-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">3</span>
+            </button>
+            <!-- Bouton Déconnexion -->
+            <a href="{{ url_for('logout') }}" class="text-sm text-neutral-400 hover:text-red-500 transition">Se déconnecter</a>
+          </div>
+      {% else %}
+          <a href="{{ url_for('login') }}" class="text-sm text-neutral-400 hover:text-red-500 transition">Se connecter</a>
+      {% endif %}
     </div>
   </header>
 

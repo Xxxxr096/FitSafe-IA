@@ -95,7 +95,36 @@
     </style>
   </head>
 
+
   <body class="flex min-h-screen">
+    <div class="progress-bar"></div>
+
+  <!-- ===== NAVBAR ===== -->
+  <header class="fixed top-0 w-full z-40 bg-neutral-900/80 backdrop-blur-md border-b border-neutral-800">
+    <div class="relative max-w-7xl mx-auto flex items-center justify-center px-6 py-4">
+      
+      <
+      <h1 class="absolute left-6 text-2xl font-orbitron font-bold text-red-500 tracking-wide">
+        FitSafe <span class="nav-link-glow">IA</span>
+      </h1>
+  
+    
+      <nav class="flex space-x-8 text-sm font-medium justify-center">
+        <a href="{{ url_for('home') }}" class="text-red-500 font-semibold">Accueil</a>
+        <a href="{{ url_for('dashboard') }}" class="hover:text-red-500 transition">Tableau de bord</a>
+        <a href="{{ url_for('advis') }}" class="hover:text-red-500 transition">Conseils</a>
+        <a href="{{ url_for('profil') }}" class="hover:text-red-500 transition">Profil</a>
+        <a href="{{ url_for('contact') }}" class="hover:text-red-500 transition">Contact</a>
+        <a href="{{ url_for('ia') }}" class="nav-link-glow">IA</a>
+        <a href="{{ url_for('humain') }}" class="nav-link-glow hover:text-red-400 transition">Humain</a>
+        {% if current_user.is_admin %}
+        <a href="{{ url_for('admin_dashboard') }}" class="nav-link-glow hover:text-red-400 transition">🛠 Admin</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+  
+  
     <!-- ===== LEFT VISUAL SECTION ===== -->
     <section
       class="hidden lg:flex lg:w-1/2 relative bg-cover bg-center"

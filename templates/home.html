@@ -9,7 +9,6 @@
   <!-- Fonts & Tailwind -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='image/logo2.png') }}">
-
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -237,7 +236,7 @@
   }
 
 
-  </style>
+</style>
 </head>
 
 <body class="bg-neutral-950 text-white">
@@ -259,6 +258,15 @@
         <a href="{{ url_for('profil') }}" class="hover:text-red-500 transition">Profil</a>
         <a href="{{ url_for('contact') }}" class="hover:text-red-500 transition">Contact</a>
         <a href="{{ url_for('ia') }}" class="nav-link-glow">IA</a>
+        <a href="{{ url_for('humain') }}" class="nav-link-glow hover:text-red-400 transition">
+          Humain
+        </a>
+        {% if current_user.is_admin %}
+          <a href="{{ url_for('admin_dashboard') }}" class="nav-link-glow hover:text-red-400 transition">
+            🛠 Admin
+          </a>
+        {% endif %}
+
 
       </nav>
       {% if current_user.is_authenticated %}
@@ -326,75 +334,186 @@
   </section>
 
   <!-- ===== SECTION 2 - Aperçu Dashboard ===== -->
+  <!-- ===== SECTION 2 - Aperçu Dashboard ===== -->
+  <!-- ===== SECTION - Ton tableau de bord IA ===== -->
+<section class="py-24 bg-gradient-to-b from-neutral-950 to-neutral-900 text-center fade-up">
+  <h3 class="text-3xl font-orbitron font-bold mb-8 glow">
+    Ton tableau de bord <span class="nav-link-glow">IA</span> 🧠
+  </h3>
+
+  <p class="text-neutral-400 max-w-2xl mx-auto mb-14 leading-relaxed">
+    Un espace conçu pour suivre tes progrès, prévenir les blessures et optimiser chaque séance.
+    FitSafe IA analyse ton entraînement, ta récupération et ton environnement pour t’aider à performer plus intelligemment.
+  </p>
+
+  <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto text-left">
+    <!-- Suivi de performance -->
+    <div class="card p-8">
+      <i data-lucide="line-chart" class="w-10 h-10 text-red-500 mb-4"></i>
+      <h4 class="font-semibold text-lg mb-2">📊 Suivi de ta progression</h4>
+      <p class="text-neutral-400 text-sm">
+        Visualise tes séances, tes durées et ton volume d’entraînement à travers des graphiques clairs et dynamiques.
+      </p>
+    </div>
+
+    <!-- Risque de blessure -->
+    <div class="card p-8">
+      <i data-lucide="alert-triangle" class="w-10 h-10 text-red-500 mb-4"></i>
+      <h4 class="font-semibold text-lg mb-2">⚠️ Prévention des blessures</h4>
+      <p class="text-neutral-400 text-sm">
+        Ton IA détecte les signes de surcharge, t’alerte en cas de risque, et t’aide à ajuster tes efforts pour rester en pleine forme.
+      </p>
+    </div>
+
+    <!-- Nutrition & récupération -->
+    <div class="card p-8">
+      <i data-lucide="heart-pulse" class="w-10 h-10 text-red-500 mb-4"></i>
+      <h4 class="font-semibold text-lg mb-2">🥗 Forme & nutrition</h4>
+      <p class="text-neutral-400 text-sm">
+        Enregistre ton score de forme, suis ton énergie et accède à des conseils personnalisés en nutrition et récupération.
+      </p>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto text-left mt-10">
+    <!-- Analyse IA -->
+    <div class="card p-8">
+      <i data-lucide="brain" class="w-10 h-10 text-red-500 mb-4"></i>
+      <h4 class="font-semibold text-lg mb-2">🧠 Analyse IA intelligente</h4>
+      <p class="text-neutral-400 text-sm">
+        L’intelligence FitSafe apprend de tes séances, de la météo et de ton rythme pour t’offrir un coaching prédictif unique.
+      </p>
+    </div>
+
+    <!-- Calories brûlées -->
+    <div class="card p-8">
+      <i data-lucide="flame" class="w-10 h-10 text-red-500 mb-4"></i>
+      <h4 class="font-semibold text-lg mb-2">🔥 Calories brûlées</h4>
+      <p class="text-neutral-400 text-sm">
+        Chaque exercice est analysé pour estimer les calories dépensées et suivre ta dépense énergétique totale.
+      </p>
+    </div>
+
+    <!-- Suivi des séances -->
+    <div class="card p-8">
+      <i data-lucide="dumbbell" class="w-10 h-10 text-red-500 mb-4"></i>
+      <h4 class="font-semibold text-lg mb-2">🏋️ Gestion des séances</h4>
+      <p class="text-neutral-400 text-sm">
+        Crée, modifie ou supprime tes séances et exercices en un clic pour une organisation fluide de ton entraînement.
+      </p>
+    </div>
+  </div>
+
+  <div class="mt-14">
+    <a href="{{ url_for('dashboard') }}" class="neon-btn text-lg">
+      <span class="nav-link-glow">Accéder à mon tableau de bord</span>
+    </a>
+  </div>
+</section>
+
+
+<!-- ===== 🌿 SECTION 3 - Conseils FitSafe ===== -->
+<section class="py-24 bg-neutral-950 text-center fade-up">
+  <h3 class="text-3xl font-orbitron font-bold mb-6 glow">
+    Des conseils personnalisés pour ton <span class="nav-link-glow">bien-être</span> 🧠
+  </h3>
+  <p class="text-neutral-400 max-w-2xl mx-auto mb-14 leading-relaxed">
+    FitSafe IA ne se limite pas à l’entraînement. Notre système te guide aussi sur la 
+    <span class="text-red-400 font-semibold">nutrition adaptée</span>, la 
+    <span class="text-red-400 font-semibold">prévention des blessures</span>, 
+    et les <span class="text-red-400 font-semibold">techniques de musculation</span> les plus efficaces pour ton profil.
+  </p>
+
+  <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+    <div class="card p-8">
+      <i data-lucide="apple" class="w-10 h-10 text-red-500 mx-auto mb-4"></i>
+      <h4 class="font-semibold mb-2 text-lg">🍎 Nutrition intelligente</h4>
+      <p class="text-neutral-400 text-sm">
+        Découvre des conseils alimentaires basés sur ton niveau d’activité, ton métabolisme et tes objectifs.
+      </p>
+    </div>
+
+    <div class="card p-8">
+      <i data-lucide="shield" class="w-10 h-10 text-red-500 mx-auto mb-4"></i>
+      <h4 class="font-semibold mb-2 text-lg">🩹 Prévention des blessures</h4>
+      <p class="text-neutral-400 text-sm">
+        FitSafe IA analyse tes entraînements pour t’alerter sur les déséquilibres et te proposer des exercices correctifs.
+      </p>
+    </div>
+
+    <div class="card p-8">
+      <i data-lucide="dumbbell" class="w-10 h-10 text-red-500 mx-auto mb-4"></i>
+      <h4 class="font-semibold mb-2 text-lg">🏋️ Progression musculaire</h4>
+      <p class="text-neutral-400 text-sm">
+        Optimise chaque séance grâce à nos conseils IA sur la charge, la récupération et la technique.
+      </p>
+    </div>
+  </div>
+
+  <div class="mt-12">
+    <a href="{{ url_for('advis') }}" class="neon-btn text-lg">
+      <span class="nav-link-glow">Découvrir tous les conseils</span>
+    </a>
+  </div>
+</section>
+
+  <!-- ===== SECTION 4 - Le choix Humain ===== -->
   <section class="py-24 bg-gradient-to-b from-neutral-950 to-neutral-900 text-center fade-up">
-    <h3 class="text-3xl font-orbitron font-bold mb-10 glow">Ton tableau de bord <span class="nav-link-glow">IA</span> </h3>
-    <p class="text-neutral-400 max-w-xl mx-auto mb-12">Visualise ta performance, ton score de forme et ton évolution en temps réel grâce à l’intelligence artificielle FitSafe.</p>
-    <canvas id="dashboardCanvas" class="mx-auto rounded-2xl w-3/4 max-w-4xl"></canvas>
+    <h3 class="text-3xl font-orbitron font-bold mb-6 glow">
+      Besoin d’une touche <span class="nav-link-glow">humaine</span> ? 🤝
+    </h3>
+    <p class="text-neutral-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+      Même si FitSafe IA est ton coach numérique le plus avancé, nous savons que parfois,
+      rien ne remplace la compréhension et l’expérience d’un vrai coach humain.  
+      <br><br>
+      Avec <span class="text-red-400 font-semibold">FitSafe Humain</span>, tu peux envoyer une demande personnalisée à notre équipe :
+      indique ton objectif, ton niveau, et nous te créerons un programme <span class="nav-link-glow">fait sur mesure</span>.
+    </p>
 
-    <script>
-      const canvas = document.getElementById('dashboardCanvas');
-      const ctx = canvas.getContext('2d');
+    <div class="flex flex-col justify-center items-center gap-3 mt-10 text-center">
+      <a href="{{ url_for('humain') }}" class="neon-btn text-lg">
+        <span class="nav-link-glow">Accéder à FitSafe Humain</span>
+      </a>
+      <a href="{{ url_for('ia') }}" 
+         class="text-neutral-400 hover:text-red-500 underline transition text-sm mt-3">
+        Préférer continuer avec l’IA
+      </a>
+    </div>
+    
 
-      function resizeCanvas() {
-        canvas.width = window.innerWidth * 0.7;
-        canvas.height = 400;
-      }
-      resizeCanvas();
-      window.addEventListener('resize', resizeCanvas);
+    <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto mt-16 text-left">
+      <div class="card p-8">
+        <i data-lucide="heart-handshake" class="w-10 h-10 text-red-500 mb-4"></i>
+        <h4 class="font-semibold mb-2 text-lg">Accompagnement humain</h4>
+        <p class="text-neutral-400 text-sm">
+          Un coach réel analyse ta demande et te renvoie un programme adapté à ta situation.
+        </p>
+      </div>
 
-      const particles = Array.from({ length: 60 }, () => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.7,
-        vy: (Math.random() - 0.5) * 0.7
-      }));
+      <div class="card p-8">
+        <i data-lucide="file-check" class="w-10 h-10 text-red-500 mb-4"></i>
+        <h4 class="font-semibold mb-2 text-lg">Programme sur mesure</h4>
+        <p class="text-neutral-400 text-sm">
+          Chaque plan est conçu individuellement, sans automatisation 100% humain.
+        </p>
+      </div>
 
-      function animate() {
-        ctx.fillStyle = "rgba(10,10,10,0.15)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        for (let i = 0; i < particles.length; i++) {
-          const p = particles[i];
-          p.x += p.vx;
-          p.y += p.vy;
-          if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-          if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(239,68,68,0.8)";
-          ctx.fill();
-
-          for (let j = i + 1; j < particles.length; j++) {
-            const q = particles[j];
-            const dist = Math.hypot(p.x - q.x, p.y - q.y);
-            if (dist < 120) {
-              ctx.beginPath();
-              ctx.moveTo(p.x, p.y);
-              ctx.lineTo(q.x, q.y);
-              ctx.strokeStyle = `rgba(239,68,68,${1 - dist / 120})`;
-              ctx.lineWidth = 0.6;
-              ctx.stroke();
-            }
-          }
-        }
-        requestAnimationFrame(animate);
-      }
-
-      animate();
-    </script>
-
-
+      <div class="card p-8">
+        <i data-lucide="timer" class="w-10 h-10 text-red-500 mb-4"></i>
+        <h4 class="font-semibold mb-2 text-lg">Réponse rapide</h4>
+        <p class="text-neutral-400 text-sm">
+          Reçois ton programme personnalisé dans les plus brefs délais, via ton espace “Humain”.
+        </p>
+      </div>
+    </div>
   </section>
 
-  <!-- ===== SECTION 3 - L'IA en action ===== -->
-  <section class="py-24 bg-neutral-950 text-center fade-up">
+   <!-- ===== SECTION 3 - L'IA en action ===== -->
+   <section class="py-24 bg-neutral-950 text-center fade-up">
     <h3 class="text-3xl font-orbitron font-bold mb-6 glow">L’IA en action 🤖</h3>
     <p class="text-neutral-400 max-w-xl mx-auto mb-10">FitSafe AI apprend de chaque séance pour perfectionner ton plan d’entraînement et optimiser tes performances.</p>
-    <a href="{{ url_for('dashboard') }}" class="neon-btn"><span class="nav-link-glow">En savoir plus</span></a>
+    <a href="{{ url_for('dashboard') }}" class="neon-btn"><span class="nav-link-glow">Télécharge Moi</span></a>
   </section>
-
-  <!-- ===== SECTION 4 - Mobile Ready ===== -->
 
   <!-- ===== FOOTER ===== -->
   <footer class="bg-neutral-950 border-t border-neutral-800 py-10 text-center">
@@ -440,7 +559,7 @@
         return;
       }
     
-      // ✅ Si on est sur une page autorisée
+     
       if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(async (position) => {
           const lat = position.coords.latitude;

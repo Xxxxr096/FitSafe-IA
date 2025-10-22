@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin | FitSafe IA</title>
+
+    <!-- Fonts + Tailwind -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Orbitron:wght@700;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background: radial-gradient(
+          circle at top,
+          #0a0a0a 0%,
+          #111 40%,
+          #1a1a1a 100%
+        );
+        color: #fff;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      h1,
+      h2 {
+        font-family: "Orbitron", sans-serif;
+        letter-spacing: 1px;
+      }
+
+      .glow {
+        text-shadow: 0 0 15px rgba(239, 68, 68, 0.8);
+      }
+
+      .nav-link-glow {
+        background: linear-gradient(90deg, #ef4444, #ff006e, #00ffff, #ef4444);
+        background-size: 300%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: glow-shift 4s linear infinite;
+      }
+
+      @keyframes glow-shift {
+        0% {
+          background-position: 0%;
+        }
+        100% {
+          background-position: 300%;
+        }
+      }
+
+      .card {
+        background: rgba(30, 30, 30, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+      }
+
+      .card:hover {
+        transform: scale(1.03);
+        box-shadow: 0 0 25px rgba(239, 68, 68, 0.25);
+      }
+
+      .btn {
+        border: 1px solid #ef4444;
+        padding: 0.5rem 1.2rem;
+        border-radius: 0.5rem;
+        transition: all 0.25s ease-in-out;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      }
+
+      .btn:hover {
+        background-color: #ef4444;
+        color: white;
+        box-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+      }
+
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #ef4444;
+        border-radius: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #1a1a1a;
+      }
+    </style>
+  </head>
+
+  <body class="p-8">
+    <!-- Header -->
+    <header
+      class="flex justify-between items-center border-b border-neutral-800 pb-5 mb-10"
+    >
+      <h1 class="text-4xl font-bold glow">
+        FitSafe <span class="nav-link-glow">Admin</span>
+      </h1>
+      <a
+        href="{{ url_for('logout') }}"
+        class="text-neutral-400 hover:text-red-500 transition text-sm"
+        >Déconnexion</a
+      >
+    </header>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div id="flash-container" class="fixed top-4 right-4 space-y-3 z-50">
+      {% for category, message in messages %}
+      <div
+        class="flash-message flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border text-sm
+        {% if category == 'error' %}bg-red-800/90 border-red-600 text-red-100
+        {% elif category == 'success' %}bg-green-800/90 border-green-600 text-green-100
+        {% elif category == 'warning' %}bg-yellow-700/90 border-yellow-500 text-yellow-100
+        {% else %}bg-neutral-800/90 border-neutral-600 text-neutral-200{% endif %}"
+      >
+        <span>{{ message }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Main grid -->
+    <main class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+      <!-- ===== UTILISATEURS ===== -->
+      <section>
+        <h2 class="text-2xl mb-4 text-red-400 font-orbitron">
+          👥 Gestion des utilisateurs
+        </h2>
+
+        <div class="overflow-y-auto max-h-[75vh] space-y-4 pr-2">
+          {% for user in users %}
+          <div
+            class="card p-5 flex justify-between items-start hover:shadow-lg transition"
+          >
+            <div>
+              <a
+                href="{{ url_for('admin_user_detail', user_id=user.id) }}"
+                class="hover:text-red-400 font-semibold text-lg transition"
+              >
+                {{ user.nom }}
+              </a>
+              <p class="text-neutral-400 text-sm">{{ user.email }}</p>
+              {% if user.is_admin %}
+              <span class="text-blue-400 text-xs font-bold">ADMIN</span>
+              {% endif %}
+              {% if user.is_banned %}
+              <span class="text-red-400 text-xs ml-2">🚫 BANNI</span>
+              {% endif %}
+            </div>
+
+            <div class="space-x-2">
+              {% if not user.is_banned %}
+              <a
+                href="{{ url_for('ban_user', user_id=user.id) }}"
+                class="btn text-red-400"
+                >Bannir</a
+              >
+              {% else %}
+              <a
+                href="{{ url_for('unban_user', user_id=user.id) }}"
+                class="btn text-green-400"
+                >Débannir</a
+              >
+              {% endif %}
+
+              <form
+                method="POST"
+                action="{{ url_for('delete_user', user_id=user.id) }}"
+                style="display:inline"
+              >
+                <input
+                  type="hidden"
+                  name="csrf_token"
+                  value="{{ csrf_token() }}"
+                />
+                <button type="submit" class="btn text-neutral-400">
+                  Supprimer
+                </button>
+              </form>
+            </div>
+          </div>
+          {% else %}
+          <p class="text-neutral-500 italic">
+            Aucun utilisateur pour le moment.
+          </p>
+          {% endfor %}
+        </div>
+      </section>
+
+      <!-- ===== DEMANDES HUMAIN ===== -->
+      <section>
+        <h2 class="text-2xl mb-4 text-red-400 font-orbitron">
+          📋 Demandes “Humain”
+        </h2>
+        <div class="overflow-y-auto max-h-[75vh] space-y-4 pr-2">
+          {% for d in demandes %}
+          <div class="card p-5">
+            <h3 class="font-semibold text-lg">
+              {{ d.user.nom if d.user else 'Utilisateur supprimé' }}
+            </h3>
+            <p class="text-neutral-400 text-sm mb-2">
+              Objectif : {{ d.objectif }}
+            </p>
+            <p class="text-sm mb-3">
+              Statut :
+              {% if d.status == 'En attente' %}
+              <span class="text-yellow-400">⏳ En attente</span>
+              {% elif d.status == 'Validé' %}
+              <span class="text-green-400">✅ Validé</span>
+              {% else %}
+              <span class="text-red-400">❌ Refusé</span>
+              {% endif %}
+            </p>
+
+            <form
+              method="POST"
+              action="{{ url_for('validate_request', request_id=d.id) }}"
+              class="flex gap-3"
+            >
+              <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token() }}"
+              />
+              <input
+                type="url"
+                name="program_link"
+                placeholder="Lien du programme"
+                class="flex-1 bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 outline-none"
+                required
+              />
+              <button type="submit" class="btn text-green-400">Valider</button>
+            </form>
+
+            {% if d.response_link %}
+            <p class="text-xs text-neutral-500 mt-3">
+              ✅ Programme envoyé le
+              {{ d.response_date.strftime('%d/%m/%Y') }}
+            </p>
+            {% endif %}
+          </div>
+          {% else %}
+          <p class="text-neutral-500 italic">Aucune demande reçue.</p>
+          {% endfor %}
+        </div>
+      </section>
+    </main>
+
+    <footer
+      class="mt-12 border-t border-neutral-800 pt-6 text-center text-sm text-neutral-500"
+    >
+      © 2025 FitSafe IA — <span class="text-red-400">Panel Admin</span>
+    </footer>
+  </body>
+</html>

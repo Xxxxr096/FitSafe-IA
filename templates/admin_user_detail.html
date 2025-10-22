@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Profil de {{ user.nom }} | FitSafe Admin</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Orbitron:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      body {
+        background: radial-gradient(circle at top, #0a0a0a, #141414, #1a1a1a);
+        color: #fff;
+        font-family: "Poppins", sans-serif;
+      }
+
+      .glow {
+        text-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+      }
+
+      .card {
+        background: rgba(30, 30, 30, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1rem;
+        transition: all 0.3s ease;
+      }
+
+      .card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 20px rgba(239, 68, 68, 0.25);
+      }
+    </style>
+  </head>
+
+  <body class="min-h-screen px-8 py-6">
+    <!-- Header -->
+    <header
+      class="flex justify-between items-center border-b border-neutral-800 pb-4 mb-10"
+    >
+      <h1 class="text-3xl font-orbitron glow">
+        Profil de <span class="text-red-400">{{ user.nom }}</span>
+      </h1>
+      <a
+        href="{{ url_for('admin_dashboard') }}"
+        class="text-neutral-400 hover:text-red-500 transition"
+        >← Retour au panel</a
+      >
+    </header>
+
+    <!-- Informations principales -->
+    <section class="grid lg:grid-cols-2 gap-8">
+      <div class="card p-6">
+        <h2 class="text-xl font-semibold mb-3 text-red-400">Informations</h2>
+        <p><span class="font-semibold">Nom :</span> {{ user.nom }}</p>
+        <p><span class="font-semibold">Email :</span> {{ user.email }}</p>
+        <p>
+          <span class="font-semibold">Date d'inscription :</span>
+          {{ user.date_created.strftime('%d/%m/%Y') if user.date_created else
+          'N/A' }}
+        </p>
+        <p>
+          <span class="font-semibold">Statut :</span>
+          {% if user.is_banned %}
+          <span class="text-red-400">Banni 🚫</span>
+          {% elif user.is_admin %}
+          <span class="text-blue-400">Administrateur 🛠</span>
+          {% else %}
+          <span class="text-green-400">Actif ✅</span>
+          {% endif %}
+        </p>
+      </div>
+
+      <!-- Scores IA -->
+      <div class="card p-6 text-center">
+        <h2 class="text-xl font-semibold mb-3 text-red-400">Performance</h2>
+
+        {% set fs = fitness_score or 0 %} {% set rs = risk_score or 0 %}
+
+        <p class="text-neutral-400 mb-2">
+          Score de forme :
+          <span
+            class="text-2xl font-bold {% if fs > 75 %}text-green-400{% elif fs > 50 %}text-yellow-400{% else %}text-red-400{% endif %}"
+          >
+            {{ fs }}%
+          </span>
+        </p>
+
+        <p class="text-neutral-400">
+          Risque de blessure :
+          <span
+            class="text-2xl font-bold {% if rs < 30 %}text-green-400{% elif rs < 70 %}text-yellow-400{% else %}text-red-400{% endif %}"
+          >
+            {{ rs }}%
+          </span>
+        </p>
+      </div>
+    </section>
+
+    <!-- Séances -->
+    <section class="mt-12">
+      <h2 class="text-2xl font-orbitron mb-4 glow">
+        📅 Séances de {{ user.nom }}
+      </h2>
+      {% if sessions %} {% for s in sessions %}
+      <div class="card p-5 mb-4">
+        <h3 class="text-red-400 font-semibold mb-2">{{ s.name }}</h3>
+        {% set workouts_for_session = workouts | selectattr('session_id',
+        'equalto', s.id) | list %} {% if workouts_for_session %}
+        <ul class="space-y-2 text-sm text-neutral-300">
+          {% for w in workouts_for_session %}
+          <li class="border-b border-neutral-800 pb-2">
+            {{ w.exercise }} — {{ w.series }}x{{ w.reps }} ({{ w.duration or 0
+            }} min)
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-neutral-500 italic">Aucun exercice enregistré.</p>
+        {% endif %}
+      </div>
+      {% endfor %} {% else %}
+      <p class="text-neutral-500 italic">
+        Aucune séance enregistrée pour cet utilisateur.
+      </p>
+      {% endif %}
+    </section>
+
+    <!-- Calories -->
+    <section class="card text-center p-6 mt-10">
+      <h3 class="text-xl font-semibold mb-3 text-red-400">
+        🔥 Total calories brûlées
+      </h3>
+      <p class="text-3xl font-bold text-green-400">
+        {{ total_calories or 0 }} kcal
+      </p>
+    </section>
+
+    <!-- Footer -->
+    <footer
+      class="text-center text-neutral-500 text-sm mt-10 border-t border-neutral-800 pt-4"
+    >
+      © 2025 FitSafe IA — Interface Admin
+    </footer>
+  </body>
+</html>
