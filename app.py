@@ -74,7 +74,7 @@ class ContactForm(FlaskForm):
 
 # DATA BASE
 class User(bd.Model, UserMixin):
-    id = bd.Column(bd.Integer, primary_key=True)
+    id = bd.Column(bd.Integer, primary_key=True, autoincrement=True)
     nom = bd.Column(bd.String(100), nullable=False)
     email = bd.Column(bd.String(120), unique=True, nullable=False)
     password = bd.Column(bd.String(256), nullable=False)
@@ -94,7 +94,7 @@ class User(bd.Model, UserMixin):
 
 
 class Session(bd.Model):
-    id = bd.Column(bd.Integer, primary_key=True)
+    id = bd.Column(bd.Integer, primary_key=True, autoincrement=True)
     name = bd.Column(bd.String(100), nullable=False)
     user_id = bd.Column(bd.Integer, bd.ForeignKey("user.id"), nullable=False)
     workouts = bd.relationship(
@@ -103,7 +103,7 @@ class Session(bd.Model):
 
 
 class Workout(bd.Model):
-    id = bd.Column(bd.Integer, primary_key=True)
+    id = bd.Column(bd.Integer, primary_key=True, autoincrement=True)
     user_id = bd.Column(bd.Integer, bd.ForeignKey("user.id"), nullable=False)
     session_id = bd.Column(bd.Integer, bd.ForeignKey("session.id"), nullable=True)
 
@@ -118,7 +118,7 @@ class Workout(bd.Model):
 
 # --- Demandes de programmes personnalisés ---
 class ProgramRequest(bd.Model):
-    id = bd.Column(bd.Integer, primary_key=True)
+    id = bd.Column(bd.Integer, primary_key=True, autoincrement=True)
     user_id = bd.Column(bd.Integer, bd.ForeignKey("user.id"), nullable=False)
     objectif = bd.Column(bd.Text, nullable=False)
     status = bd.Column(bd.String(50), default="En attente")
