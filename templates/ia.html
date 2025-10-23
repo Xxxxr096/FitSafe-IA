@@ -370,5 +370,60 @@
       composer.setSize(window.innerWidth, window.innerHeight);
     }
   </script>
+  <!-- === Plein écran === -->
+<div id="fullscreen-overlay"
+     style="position:fixed;inset:0;background:rgba(0,0,0,0.85);
+            color:white;display:flex;flex-direction:column;
+            align-items:center;justify-content:center;
+            z-index:9999;font-family:'Poppins',sans-serif;">
+  <h2 style="font-size:1.8rem;margin-bottom:1rem;">
+    🌐 Mode immersif FitSafe AI
+  </h2>
+  <p style="color:#aaa;margin-bottom:2rem;">Clique pour passer en plein écran</p>
+  <button id="enterFullscreenBtn"
+          style="background:#ef4444;padding:0.8rem 1.8rem;
+                 border:none;border-radius:1rem;
+                 font-size:1.1rem;color:white;
+                 cursor:pointer;transition:all 0.3s;">
+    Activer le plein écran
+  </button>
+</div>
+
+<script>
+  const overlay = document.getElementById('fullscreen-overlay');
+  const btn = document.getElementById('enterFullscreenBtn');
+
+  function openFullscreen() {
+    const el = document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    else if (el.msRequestFullscreen) el.msRequestFullscreen();
+  }
+
+  function closeFullscreen() {
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    else if (document.msExitFullscreen) document.msExitFullscreen();
+  }
+
+  // Quand on clique sur le bouton
+  btn.addEventListener('click', async () => {
+    await openFullscreen();
+    overlay.style.opacity = '0';
+    overlay.style.pointerEvents = 'none';
+    setTimeout(() => overlay.remove(), 600);
+  });
+
+  // Quand on quitte le plein écran (ESC)
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+      // Revenir à l’état initial
+      if (!document.body.contains(overlay)) document.body.appendChild(overlay);
+      overlay.style.opacity = '1';
+      overlay.style.pointerEvents = 'auto';
+    }
+  });
+</script>
+
 </body>
 </html>
