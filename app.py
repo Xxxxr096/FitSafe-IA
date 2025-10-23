@@ -396,8 +396,15 @@ def login():
                     "warning",
                 )
                 return redirect(url_for("login"))
+            if user.is_banned:
+                flash(
+                    "Vous etes banie par l'admin, veuillez laisser un message dans la rubrique Contact",
+                    "warning",
+                )
+                return redirect(url_for("login"))
             login_user(user)
-            # ajouter ic admin apres
+            if user.is_admin:
+                return redirect(url_for("/admin_dashboard"))
             return redirect(url_for("dashboard"))
         else:
             flash("Email ou mot de passe incorrect", "error")
