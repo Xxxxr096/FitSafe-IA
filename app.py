@@ -404,7 +404,7 @@ def login():
                 return redirect(url_for("login"))
             login_user(user)
             if user.is_admin:
-                return redirect(url_for("/admin_dashboard"))
+                return redirect(url_for("admin_dashboard"))
             return redirect(url_for("dashboard"))
         else:
             flash("Email ou mot de passe incorrect", "error")
@@ -482,7 +482,6 @@ def dashboard():
 
     user_poids = current_user.poids
 
-    # ⚠️ Si le poids n'est pas défini, on n’envoie le mail qu’une seule fois et on n’essaie PAS de calculer
     if not user_poids:
         email = current_user.email
         corps = f"""
@@ -512,7 +511,7 @@ def dashboard():
             "⚠️ Merci de compléter ton profil pour activer le calcul des calories.",
             "warning",
         )
-        return redirect(url_for("profil"))  # ✅ Redirection propre, sans boucle
+        return redirect(url_for("profil"))
 
     # --- Calcul des calories pour chaque exercice ---
     total_calories = 0
