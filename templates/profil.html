@@ -137,7 +137,13 @@
     pointer-events: none;
   }
 
-
+  #flash-container {
+    position: fixed;
+    top: 4rem; /* espace sous la navbar */
+    right: 1rem;
+    z-index: 50; /* au-dessus du contenu, sous la progress bar */
+  }
+  
   </style>
 </head>
 
@@ -173,6 +179,7 @@
   </header>
 
   <!-- ===== FLASH MESSAGES ===== -->
+  <!-- ===== FLASH MESSAGES (identique au dashboard) ===== -->
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       <div id="flash-container" class="fixed top-4 right-4 space-y-3 z-50">
@@ -189,6 +196,7 @@
       </div>
     {% endif %}
   {% endwith %}
+
 
   <!-- ===== MAIN ===== -->
   <main class="pt-28 pb-16 px-6 md:px-12 max-w-5xl mx-auto space-y-12">
@@ -417,6 +425,19 @@
       composer.setSize(window.innerWidth, window.innerHeight);
     }
     </script>
+    <script>
+      lucide.createIcons();
+      // Disparition automatique des messages flash après 3 secondes
+      setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(el => {
+          el.style.transition = 'opacity 0.6s, transform 0.6s';
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(-10px)';
+          setTimeout(() => el.remove(), 600);
+        });
+      }, 3000);
+    </script>
+    
     
 </body>
 </html>
