@@ -109,11 +109,42 @@
       transform: scale(1.08);
       filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.8));
     }
+    /* ===== Correction du fond neuronal ===== */
+  #neural-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0; /* fond derrière tout */
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  /* Tous les éléments du site doivent passer au-dessus */
+  main, header, footer, .progress-bar, #flash-container {
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Ajout d’un léger voile noir transparent pour la lisibilité */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.65);
+    z-index: 1;
+    pointer-events: none;
+  }
+
 
   </style>
 </head>
 
 <body class="relative">
+  <!-- Fond neuronal -->
+  <div id="neural-bg"></div>
+
   <div class="progress-bar"></div>
 
   <!-- ===== NAVBAR ===== -->
@@ -295,5 +326,97 @@
       });
     }, 3000);
   </script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.162.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.162.0/examples/jsm/"
+      }
+    }
+    </script>
+    
+    <script type="module">
+    import * as THREE from 'three';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+    import { GammaCorrectionShader } from 'three/addons/shaders/GammaCorrectionShader.js';
+    
+    let scene, camera, renderer, composer;
+    let connections = [];
+    const connectionDistance = 4, numNeurons = 120;
+    
+    init(); animate();
+    
+    function init() {
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
+      camera.position.z = 8;
+    
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.domElement.style.position = 'fixed';
+      renderer.domElement.style.top = 0;
+      document.getElementById('neural-bg').appendChild(renderer.domElement);
+    
+      scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+      createNetwork();
+    
+      composer = new EffectComposer(renderer);
+      composer.addPass(new RenderPass(scene, camera));
+      composer.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.9, 0.5, 0.9));
+      composer.addPass(new ShaderPass(GammaCorrectionShader));
+    
+      window.addEventListener('resize', onResize);
+    }
+    
+    function createNetwork() {
+      const geo = new THREE.SphereGeometry(0.05, 8, 8);
+      const neurons = [];
+    
+      for (let i = 0; i < numNeurons; i++) {
+        const color = Math.random() > 0.5 ? 0x00ffff : 0xff0044;
+        const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.8 });
+        const node = new THREE.Mesh(geo, mat);
+        node.position.set((Math.random() - 0.5) * 20, (Math.random() - 0.5) * 10, (Math.random() - 0.5) * 15);
+        scene.add(node);
+        neurons.push(node);
+      }
+    
+      const material = new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.15 });
+      for (let i = 0; i < neurons.length; i++) {
+        for (let j = i + 1; j < neurons.length; j++) {
+          const a = neurons[i].position, b = neurons[j].position;
+          if (a.distanceTo(b) < connectionDistance && Math.random() < 0.3) {
+            const lineGeo = new THREE.BufferGeometry().setFromPoints([a, b]);
+            const line = new THREE.Line(lineGeo, material.clone());
+            line.userData = { baseOpacity: Math.random() * 0.3 + 0.1, speed: Math.random() * 2 + 0.5 };
+            scene.add(line);
+            connections.push(line);
+          }
+        }
+      }
+    }
+    
+    function animate() {
+      requestAnimationFrame(animate);
+      scene.rotation.y += 0.001;
+      connections.forEach(l => {
+        const t = Math.sin(Date.now() * 0.001 * l.userData.speed) * 0.5 + 0.5;
+        l.material.opacity = l.userData.baseOpacity + t * 0.3;
+      });
+      composer.render();
+    }
+    
+    function onResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      composer.setSize(window.innerWidth, window.innerHeight);
+    }
+    </script>
+    
 </body>
 </html>
