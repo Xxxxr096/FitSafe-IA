@@ -212,6 +212,44 @@ def validate_request(request_id):
     demande.response_date = datetime.utcnow()
     bd.session.commit()
     flash("Programme envoyé avec succès ✅", "success")
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = "🎯 Ton programme personnalisé FitSafe est prêt !"
+    msg["From"] = os.getenv("MAIL_USERNAME")
+    msg["To"] = demande.user.email
+
+    text_part = f"""
+    Bonjour {demande.user.nom},
+
+    Ton programme personnalisé FitSafe est prêt !
+
+    Tu peux le consulter dès maintenant via le lien suivant :
+    {program_link} ou sur ton espace dans la rubrique Humain.
+
+    Continue de t’entraîner avec régularité et prudence 💪
+
+    L’équipe FitSafe
+    """
+
+    html_part = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; color: #222;">
+        <p>Bonjour <strong>{demande.user.nom}</strong>,</p>
+        <p>Ton <strong>programme personnalisé FitSafe</strong> est maintenant disponible 🎯</p>
+        <p style="text-align:center;">
+        <a href="{program_link}" 
+            style="background-color:#007BFF; color:white; padding:12px 20px; text-decoration:none; border-radius:6px;">
+            Voir mon programme
+        </a>
+        </p>
+        <p>Continue de t’entraîner avec rigueur et prudence 💪</p>
+        <p style="color:#666;">– L’équipe FitSafe</p>
+    </body>
+    </html>
+    """
+
+    msg.attach(MIMEText(text_part, "plain"))
+    msg.attach(MIMEText(html_part, "html"))
+
     return redirect(url_for("admin_dashboard"))
 
 
@@ -323,21 +361,44 @@ def register():
         token = generate_confirmation_token(email)
         confirm_url = url_for("confirm_email", token=token, _external=True)
 
-        message = MIMEText(
-            f"""
-        Bienvenue sur GRINDZONE 💪,
-
-        Clique ici pour confirmer ton adresse email :
-        {confirm_url}
-
-        Ce lien expire dans 1h.
-
-        L'équipe GRINDZONE
-        """
-        )
-        message["Subject"] = "Confirmation de ton compte – GRINDZONE"
+        message = MIMEMultipart("alternative")
+        message["Subject"] = "Confirme ton compte FitSafe ✅"
         message["From"] = os.getenv("MAIL_USERNAME")
         message["To"] = email
+
+        text_part = f"""
+        Bonjour {nom},
+
+        Bienvenue sur FitSafe ! 💪
+
+        Merci d’avoir créé ton compte. Pour activer ton profil, clique sur le lien ci-dessous :
+        {confirm_url}
+
+        Ce lien est valable pendant 1 heure.
+
+        L’équipe FitSafe
+        """
+
+        html_part = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; color: #222;">
+            <p>Bonjour <strong>{nom}</strong>,</p>
+            <p>Bienvenue sur <strong>FitSafe</strong> 💪</p>
+            <p>Merci d’avoir créé ton compte. Pour activer ton profil, clique sur le bouton ci-dessous :</p>
+            <p style="text-align: center;">
+            <a href="{confirm_url}" 
+                style="background-color: #007BFF; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
+                Confirmer mon compte
+            </a>
+            </p>
+            <p>Ce lien est valable pendant <strong>1 heure</strong>.</p>
+            <p style="color: #666;">– L’équipe FitSafe</p>
+        </body>
+        </html>
+        """
+
+        message.attach(MIMEText(text_part, "plain"))
+        message.attach(MIMEText(html_part, "html"))
 
         try:
             with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
@@ -484,20 +545,29 @@ def dashboard():
 
     if not user_poids:
         email = current_user.email
-        corps = f"""
-        Bonjour {current_user.nom},
-
-        Bienvenue sur FitSafe 💪
-
-        Pour que ton tableau de bord fonctionne correctement,
-        merci de renseigner ton poids, ta taille et ton âge dans la rubrique Profil.
-
-        L’équipe FitSafe
+        corps_html = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; color: #222;">
+            <p>Bonjour <strong>{current_user.nom}</strong>,</p>
+            <p>Bienvenue sur <strong>FitSafe</strong> 💪</p>
+            <p>Pour que ton tableau de bord fonctionne correctement, merci de renseigner ton <strong>poids</strong>, ta <strong>taille</strong> et ton <strong>âge</strong> dans la rubrique <em>Profil</em>.</p>
+            <p style="text-align: center;">
+            <a href="{url_for('profil', _external=True)}" 
+                style="background-color: #28A745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px;">
+                Mettre à jour mon profil
+            </a>
+            </p>
+            <p style="color: #666;">Merci pour ta confiance 💪<br>L’équipe FitSafe</p>
+        </body>
+        </html>
         """
-        msg = MIMEText(corps)
+
+        msg = MIMEMultipart("alternative")
         msg["Subject"] = "⚠️ Complète ton profil FitSafe"
         msg["From"] = os.getenv("MAIL_USERNAME")
         msg["To"] = email
+
+        msg.attach(MIMEText(corps_html, "html"))
 
         try:
             with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
@@ -761,22 +831,39 @@ def contact():
         message = form.message.data
 
         # --- Construction de l'email ---
-        msg = MIMEMultipart()
+        msg = MIMEMultipart("alternative")
         msg["To"] = os.getenv("MAIL_USERNAME")
         msg["From"] = email
-        msg["Subject"] = f"[FitSafe AI] Nouveau message de {nom}"
+        msg["Subject"] = f"[FitSafe AI] Message de {nom}"
 
-        body = f"""
-        📩 Nouveau message reçu depuis le formulaire de contact FitSafe AI :
+        text_part = f"""
+        Nouveau message reçu depuis le formulaire de contact FitSafe AI :
 
         Nom : {nom}
         Email : {email}
         Sujet : {sujet}
+
         Message :
         {message}
         """
 
-        msg.attach(MIMEText(body, "plain"))
+        html_part = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; color: #222;">
+            <h2>📩 Nouveau message reçu via FitSafe AI</h2>
+            <p><strong>Nom :</strong> {nom}<br>
+            <strong>Email :</strong> {email}<br>
+            <strong>Sujet :</strong> {sujet}</p>
+            <hr>
+            <p style="white-space: pre-line;">{message}</p>
+            <hr>
+            <p style="color: #666;">– Notification automatique FitSafe</p>
+        </body>
+        </html>
+        """
+
+        msg.attach(MIMEText(text_part, "plain"))
+        msg.attach(MIMEText(html_part, "html"))
 
         try:
             # Connexion sécurisée à Gmail SMTP
